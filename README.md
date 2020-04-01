@@ -18,3 +18,14 @@ simple backend project created with phalcon v4
 * import phalcon-backbone.sql inside db folder
 * import phalcon-backbone.postman_collection.json to [postman](https://www.postman.com/)
 * finish, just try run your postman
+
+## Task List
+
+* [x] API type
+* [ ] API robot
+* [ ] API part
+* [ ] API robot_part
+
+## About Me
+
+visit my website [adiyansahcode.id](http://adiyansahcode.id/)
