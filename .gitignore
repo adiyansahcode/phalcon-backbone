@@ -1,0 +1,13 @@
+phalcon-backbone.code-workspace
+composer.lock
+backup
+db
+/.vscode
+/.phalcon
+/vendor/
+/public/files/*
+/public/img/*
+/public/temp/*
+!/public/files/.gitkeep
+!/public/img/.gitkeep
+!/public/temp/.gitkeep
