@@ -1,0 +1,44 @@
+AddDefaultCharset UTF-8
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)$ index.php?_url=/$1 [QSA,L]
+
+    # testing htaccess
+    # RewriteCond %{QUERY_STRING} !vardump
+    # RewriteRule (.*) http://www.example.com/$1?vardump&reqhost=%{HTTP_HOST} [R=301,L,QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set Connection keep-alive
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Headers "Origin, Authorization, Accept, X-Requested-With, Content-Type"
+    Header set Access-Control-Allow-Methods "HEAD,OPTIONS,GET,POST,PATCH,PUT,DELETE"
+</IfModule>
+
+<If "%{HTTP_HOST} ='localhost'">
+    <IfModule php7_module>
+        php_value date.timezone 'Asia/Jakarta'
+        php_value max_execution_time 300
+        php_value max_input_time 300
+        php_value memory_limit 1G
+        php_value post_max_size  100M
+        php_value upload_max_filesize 100M
+    </IfModule>
+</If>
+
+<If "%{HTTP_HOST} ='x.x.x.x'">
+    <IfModule php7_module>
+        php_value date.timezone 'Asia/Jakarta'
+        php_value max_execution_time 300
+        php_value max_input_time 300
+        php_value memory_limit 1G
+        php_value post_max_size  100M
+        php_value upload_max_filesize 100M
+    </IfModule>
+</If>
