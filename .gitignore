@@ -1,7 +1,6 @@
 phalcon-backbone.code-workspace
 composer.lock
 backup
-db
 note.txt
 /.vscode
 /.phalcon
