@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Pbackbone\Validation;
 
-use Pbackbone\Model\TypeModel as TableModel;
+use Pbackbone\Model\PartModel as TableModel;
 
-class TypeUpdateDataByPatchValidation extends \Pbackbone\Validation\BaseValidation
+class PartUpdateDataByPatchValidation extends \Pbackbone\Validation\BaseValidation
 {
     public function initialize()
     {

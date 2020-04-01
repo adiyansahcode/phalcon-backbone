@@ -51,7 +51,7 @@ class TypeUpdateDataByPutValidation extends \Pbackbone\Validation\BaseValidation
             new \Phalcon\Validation\Validator\StringLength([
                 "max" => [
                     "name" => 50,
-                    "description" => 200,
+                    "description" => 500,
                 ],
                 "min" => [
                     "name" => 0,

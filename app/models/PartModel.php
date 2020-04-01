@@ -44,17 +44,24 @@ class PartModel extends \Phalcon\Mvc\Model
     /**
      *
      * @var string
-     * @Column(column="description", type="string", length=100, nullable=true)
+     * @Column(column="description", type="string", nullable=true)
      */
     protected $description;
+
+    /**
+     *
+     * @var string
+     * @Column(column="is_active", type="string", length='yes','no', nullable=true)
+     */
+    protected $isActive;
 
     /**
      * Method to set the value of field id
      *
      * @param integer $id
-     * @return $this
+     * @return PartModel
      */
-    public function setId($id)
+    public function setId(int $id): PartModel
     {
         $this->id = $id;
 
@@ -65,9 +72,9 @@ class PartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field created_at
      *
      * @param string $createdAt
-     * @return $this
+     * @return PartModel
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(string $createdAt): PartModel
     {
         $this->createdAt = $createdAt;
 
@@ -78,9 +85,9 @@ class PartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field updated_at
      *
      * @param string $updatedAt
-     * @return $this
+     * @return PartModel
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt(string $updatedAt): PartModel
     {
         $this->updatedAt = $updatedAt;
 
@@ -91,9 +98,9 @@ class PartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field name
      *
      * @param string $name
-     * @return $this
+     * @return PartModel
      */
-    public function setName($name)
+    public function setName(string $name): PartModel
     {
         $this->name = $name;
 
@@ -104,11 +111,24 @@ class PartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field description
      *
      * @param string $description
-     * @return $this
+     * @return PartModel
      */
-    public function setDescription($description)
+    public function setDescription(string $description): PartModel
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * Method to set the value of field is_active
+     *
+     * @param string $isActive
+     * @return PartModel
+     */
+    public function setIsActive(string $isActive): PartModel
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }
@@ -118,9 +138,9 @@ class PartModel extends \Phalcon\Mvc\Model
      *
      * @return integer
      */
-    public function getId()
+    public function getId(): int
     {
-        return $this->id;
+        return (int) $this->id;
     }
 
     /**
@@ -128,9 +148,9 @@ class PartModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): string
     {
-        return $this->createdAt;
+        return (string) $this->createdAt;
     }
 
     /**
@@ -138,9 +158,9 @@ class PartModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): string
     {
-        return $this->updatedAt;
+        return (string) $this->updatedAt;
     }
 
     /**
@@ -148,9 +168,9 @@ class PartModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**
@@ -158,9 +178,19 @@ class PartModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getDescription()
+    public function getDescription(): string
     {
-        return $this->description;
+        return (string) $this->description;
+    }
+
+    /**
+     * Returns the value of field isActive
+     *
+     * @return string
+     */
+    public function getIsActive(): string
+    {
+        return (string) $this->isActive;
     }
 
     /**
@@ -171,9 +201,41 @@ class PartModel extends \Phalcon\Mvc\Model
         $this->setSchema("phalcon-backbone");
         $this->setSource("part");
 
+        $this->addBehavior(
+            new \Phalcon\Mvc\Model\Behavior\Timestampable(
+                [
+                    'beforeCreate' => [
+                        'field'  => 'createdAt',
+                        'format' => 'Y-m-d H:i:s',
+                    ],
+                    'beforeUpdate' => [
+                        'field'  => 'updatedAt',
+                        'format' => 'Y-m-d H:i:s',
+                    ],
+                ]
+            )
+        );
+
+        // * Sets a list of attributes that must be skipped from the generated INSERT statement
+        $this->skipAttributesOnCreate(
+            [
+                'updatedAt',
+            ]
+        );
+
+        // * Sets a list of attributes that must be skipped from the generated UPDATE statement
+        $this->skipAttributesOnUpdate(
+            [
+                'createdAt',
+            ]
+        );
+
+        // * Sets if a model must use dynamic update instead of the all-field update
+        $this->useDynamicUpdate(true);
+
         $this->hasMany(
             'id',
-            'Pbackbone\Model\RobotPart',
+            'Pbackbone\Model\RobotPartModel',
             'partId',
             [
                 'alias' => 'RobotPart',
@@ -183,28 +245,6 @@ class PartModel extends \Phalcon\Mvc\Model
                 ],
             ]
         );
-    }
-
-    /**
-     * Allows to query a set of records that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return PartModel[]|PartModel|\Phalcon\Mvc\Model\ResultSetInterface
-     */
-    public static function find($parameters = null): \Phalcon\Mvc\Model\ResultsetInterface
-    {
-        return parent::find($parameters);
-    }
-
-    /**
-     * Allows to query the first record that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return PartModel|\Phalcon\Mvc\Model\ResultInterface
-     */
-    public static function findFirst($parameters = null)
-    {
-        return parent::findFirst($parameters);
     }
 
     /**
@@ -220,7 +260,8 @@ class PartModel extends \Phalcon\Mvc\Model
             'created_at' => 'createdAt',
             'updated_at' => 'updatedAt',
             'name' => 'name',
-            'description' => 'description'
+            'description' => 'description',
+            'is_active' => 'isActive'
         ];
     }
 }

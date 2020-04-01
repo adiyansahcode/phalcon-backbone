@@ -6,7 +6,7 @@ namespace Pbackbone\Validation;
 
 use Pbackbone\Model\TypeModel as TableModel;
 
-class TypeCreateDataValidation extends \Pbackbone\Validation\BaseValidation
+class PartCreateDataValidation extends \Pbackbone\Validation\BaseValidation
 {
     public function initialize()
     {

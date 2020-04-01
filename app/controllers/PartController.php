@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Pbackbone\Controller;
 
-use Pbackbone\Model\TypeModel as TableModel;
-use Pbackbone\Validation\TypeCreateDataValidation as CreateDataValidation;
-use Pbackbone\Validation\TypeReadDataValidation as ReadDataValidation;
-use Pbackbone\Validation\TypeReadDataByIdValidation as ReadDataByIdValidation;
-use Pbackbone\Validation\TypeUpdateDataByPutValidation as UpdateDataByPutValidation;
-use Pbackbone\Validation\TypeUpdateDataByPatchValidation as UpdateDataByPatchValidation;
-use Pbackbone\Validation\TypeDeleteDataValidation as DeleteDataValidation;
+use Pbackbone\Model\PartModel as TableModel;
+use Pbackbone\Validation\PartCreateDataValidation as CreateDataValidation;
+use Pbackbone\Validation\PartReadDataValidation as ReadDataValidation;
+use Pbackbone\Validation\PartReadDataByIdValidation as ReadDataByIdValidation;
+use Pbackbone\Validation\PartUpdateDataByPutValidation as UpdateDataByPutValidation;
+use Pbackbone\Validation\PartUpdateDataByPatchValidation as UpdateDataByPatchValidation;
+use Pbackbone\Validation\PartDeleteDataValidation as DeleteDataValidation;
 
-class TypeController extends \Phalcon\Mvc\Controller
+class PartController extends \Phalcon\Mvc\Controller
 {
     /**
      * readDataAction, get all data from table
@@ -325,13 +325,13 @@ class TypeController extends \Phalcon\Mvc\Controller
             "description" => $dataDb->getDescription(),
             "isActive"    => $dataDb->getIsActive(),
             "link" => [
-                "self" => "/type/" . $dataDb->getId(),
+                "self" => $this->config->application->baseUri . "/type/" . $dataDb->getId(),
             ]
         ];
 
         // * send response
         $responseStatus = "success";
-        $responseData = $data;
+        $responseData[$this->dataName] = $data;
         $this->response->setStatusCode(200);
         $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
