@@ -34,7 +34,7 @@ class BaseValidation extends \Phalcon\Validation
                 $code     = $message->getCode();
                 $field    = $message->getField();
                 $msg      = $message->getMessage();
-                $type     = str_replace("Phalcon\\Validation\\Validator\\", "", $message->getType());
+                $type     = strtolower(str_replace("Phalcon\\Validation\\Validator\\", "", $message->getType()));
                 $metaData = $message->getMetaData();
 
                 $errors[] = [

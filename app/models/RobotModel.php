@@ -2,6 +2,8 @@
 
 namespace Pbackbone\Model;
 
+use Phalcon\Mvc\Model\Relation;
+
 /**
  * RobotModel
  * @package Pbackbone\Models
@@ -44,7 +46,7 @@ class RobotModel extends \Phalcon\Mvc\Model
     /**
      *
      * @var string
-     * @Column(column="description", type="string", length=100, nullable=true)
+     * @Column(column="description", type="string", nullable=true)
      */
     protected $description;
 
@@ -57,18 +59,26 @@ class RobotModel extends \Phalcon\Mvc\Model
 
     /**
      *
+     * @var string
+     * @Column(column="is_active", type="string", length='yes','no', nullable=true)
+     */
+    protected $isActive;
+
+    /**
+     *
      * @var integer
      * @Column(column="type_id", type="integer", length=10, nullable=true)
      */
     protected $typeId;
 
+
     /**
      * Method to set the value of field id
      *
      * @param integer $id
-     * @return $this
+     * @return RobotModel
      */
-    public function setId($id)
+    public function setId(int $id): RobotModel
     {
         $this->id = $id;
 
@@ -79,9 +89,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field created_at
      *
      * @param string $createdAt
-     * @return $this
+     * @return RobotModel
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(string $createdAt): RobotModel
     {
         $this->createdAt = $createdAt;
 
@@ -92,9 +102,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field updated_at
      *
      * @param string $updatedAt
-     * @return $this
+     * @return RobotModel
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt(string $updatedAt): RobotModel
     {
         $this->updatedAt = $updatedAt;
 
@@ -105,9 +115,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field name
      *
      * @param string $name
-     * @return $this
+     * @return RobotModel
      */
-    public function setName($name)
+    public function setName(string $name): RobotModel
     {
         $this->name = $name;
 
@@ -118,9 +128,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field description
      *
      * @param string $description
-     * @return $this
+     * @return RobotModel
      */
-    public function setDescription($description)
+    public function setDescription(string $description): RobotModel
     {
         $this->description = $description;
 
@@ -131,11 +141,24 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field year
      *
      * @param integer $year
-     * @return $this
+     * @return RobotModel
      */
-    public function setYear($year)
+    public function setYear(int $year): RobotModel
     {
         $this->year = $year;
+
+        return $this;
+    }
+
+    /**
+     * Method to set the value of field is_active
+     *
+     * @param string $isActive
+     * @return RobotModel
+     */
+    public function setIsActive(string $isActive): RobotModel
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }
@@ -144,9 +167,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      * Method to set the value of field type_id
      *
      * @param integer $typeId
-     * @return $this
+     * @return RobotModel
      */
-    public function setTypeId($typeId)
+    public function setTypeId(?int $typeId): RobotModel
     {
         $this->typeId = $typeId;
 
@@ -158,9 +181,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return integer
      */
-    public function getId()
+    public function getId(): int
     {
-        return $this->id;
+        return (int) $this->id;
     }
 
     /**
@@ -168,9 +191,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): string
     {
-        return $this->createdAt;
+        return (string) $this->createdAt;
     }
 
     /**
@@ -178,9 +201,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): string
     {
-        return $this->updatedAt;
+        return (string) $this->updatedAt;
     }
 
     /**
@@ -188,9 +211,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**
@@ -198,9 +221,9 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getDescription()
+    public function getDescription(): string
     {
-        return $this->description;
+        return (string) $this->description;
     }
 
     /**
@@ -208,17 +231,27 @@ class RobotModel extends \Phalcon\Mvc\Model
      *
      * @return integer
      */
-    public function getYear()
+    public function getYear(): int
     {
-        return $this->year;
+        return (int) $this->year;
+    }
+
+    /**
+     * Returns the value of field isActive
+     *
+     * @return string
+     */
+    public function getIsActive(): string
+    {
+        return (string) $this->isActive;
     }
 
     /**
      * Returns the value of field typeId
      *
-     * @return integer
+     * @return integer|null
      */
-    public function getTypeId()
+    public function getTypeId(): ?int
     {
         return $this->typeId;
     }
@@ -231,25 +264,70 @@ class RobotModel extends \Phalcon\Mvc\Model
         $this->setSchema("phalcon-backbone");
         $this->setSource("robot");
 
+        $this->addBehavior(
+            new \Phalcon\Mvc\Model\Behavior\Timestampable(
+                [
+                    'beforeCreate' => [
+                        'field'  => 'createdAt',
+                        'format' => 'Y-m-d H:i:s',
+                    ],
+                    'beforeUpdate' => [
+                        'field'  => 'updatedAt',
+                        'format' => 'Y-m-d H:i:s',
+                    ],
+                ]
+            )
+        );
+
+        // * Sets a list of attributes that must be skipped from the generated INSERT statement
+        $this->skipAttributesOnCreate(
+            [
+                'updatedAt',
+            ]
+        );
+
+        // * Sets a list of attributes that must be skipped from the generated UPDATE statement
+        $this->skipAttributesOnUpdate(
+            [
+                'createdAt',
+            ]
+        );
+
+        // * Sets if a model must use dynamic update instead of the all-field update
+        $this->useDynamicUpdate(true);
+
+        $this->hasManyToMany(
+            'id',
+            '\Pbackbone\Model\RobotPartModel',
+            'robotId',
+            'partId',
+            '\Pbackbone\Model\PartModel',
+            'id',
+            [
+                'alias' => 'part',
+                'reusable' => true,
+            ]
+        );
+
         $this->hasMany(
             'id',
-            'Pbackbone\Model\RobotPart',
+            '\Pbackbone\Model\RobotPartModel',
             'robotId',
             [
-                'alias' => 'RobotPart',
+                'alias' => 'robotPart',
                 'reusable' => true,
                 'foreignKey' => [
-                    'message' => 'data still being used',
+                    'action' => Relation::ACTION_CASCADE,
                 ],
             ]
         );
 
         $this->belongsTo(
             'typeId',
-            'Pbackbone\Model\Type',
+            '\Pbackbone\Model\TypeModel',
             'id',
             [
-                'alias' => 'Type',
+                'alias' => 'type',
                 'reusable' => true,
                 'foreignKey' => [
                     'allowNulls' => true,
@@ -257,28 +335,6 @@ class RobotModel extends \Phalcon\Mvc\Model
                 ],
             ]
         );
-    }
-
-    /**
-     * Allows to query a set of records that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return RobotModel[]|RobotModel|\Phalcon\Mvc\Model\ResultSetInterface
-     */
-    public static function find($parameters = null): \Phalcon\Mvc\Model\ResultsetInterface
-    {
-        return parent::find($parameters);
-    }
-
-    /**
-     * Allows to query the first record that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return RobotModel|\Phalcon\Mvc\Model\ResultInterface
-     */
-    public static function findFirst($parameters = null)
-    {
-        return parent::findFirst($parameters);
     }
 
     /**
@@ -296,6 +352,7 @@ class RobotModel extends \Phalcon\Mvc\Model
             'name' => 'name',
             'description' => 'description',
             'year' => 'year',
+            'is_active' => 'isActive',
             'type_id' => 'typeId'
         ];
     }

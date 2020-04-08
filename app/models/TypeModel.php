@@ -238,10 +238,10 @@ class TypeModel extends \Phalcon\Mvc\Model
 
         $this->hasMany(
             'id',
-            'Pbackbone\Model\RobotModel',
+            '\Pbackbone\Model\RobotModel',
             'typeId',
             [
-                'alias' => 'Robot',
+                'alias' => 'robot',
                 'reusable' => true,
                 'foreignKey' => [
                     'message' => 'data still being used',

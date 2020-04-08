@@ -45,9 +45,9 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field id
      *
      * @param integer $id
-     * @return $this
+     * @return RobotPartModel
      */
-    public function setId($id)
+    public function setId(int $id): RobotPartModel
     {
         $this->id = $id;
 
@@ -58,9 +58,9 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field created_at
      *
      * @param string $createdAt
-     * @return $this
+     * @return RobotPartModel
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(string $createdAt): RobotPartModel
     {
         $this->createdAt = $createdAt;
 
@@ -71,9 +71,9 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      * Method to set the value of field robot_id
      *
      * @param integer $robotId
-     * @return $this
+     * @return RobotPartModel
      */
-    public function setRobotId($robotId)
+    public function setRobotId(?int $robotId): RobotPartModel
     {
         $this->robotId = $robotId;
 
@@ -86,7 +86,7 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      * @param integer $partId
      * @return $this
      */
-    public function setPartId($partId)
+    public function setPartId(?int $partId): RobotPartModel
     {
         $this->partId = $partId;
 
@@ -98,9 +98,9 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      *
      * @return integer
      */
-    public function getId()
+    public function getId(): int
     {
-        return $this->id;
+        return (int) $this->id;
     }
 
     /**
@@ -108,9 +108,9 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      *
      * @return string
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): string
     {
-        return $this->createdAt;
+        return (string) $this->createdAt;
     }
 
     /**
@@ -118,19 +118,19 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      *
      * @return integer
      */
-    public function getRobotId()
+    public function getRobotId(): ?int
     {
-        return $this->robotId;
+        return $this->typeId;
     }
 
     /**
      * Returns the value of field partId
      *
-     * @return integer
+     * @return integer|null
      */
-    public function getPartId()
+    public function getPartId(): ?int
     {
-        return $this->partId;
+        return $this->typeId;
     }
 
     /**
@@ -141,12 +141,33 @@ class RobotPartModel extends \Phalcon\Mvc\Model
         $this->setSchema("phalcon-backbone");
         $this->setSource("robot_part");
 
+        $this->addBehavior(
+            new \Phalcon\Mvc\Model\Behavior\Timestampable(
+                [
+                    'beforeCreate' => [
+                        'field'  => 'createdAt',
+                        'format' => 'Y-m-d H:i:s',
+                    ],
+                ]
+            )
+        );
+
+        // * Sets a list of attributes that must be skipped from the generated UPDATE statement
+        $this->skipAttributesOnUpdate(
+            [
+                'createdAt',
+            ]
+        );
+
+        // * Sets if a model must use dynamic update instead of the all-field update
+        $this->useDynamicUpdate(true);
+
         $this->belongsTo(
             'partId',
-            'Pbackbone\Model\Part',
+            '\Pbackbone\Model\PartModel',
             'id',
             [
-                'alias' => 'Part',
+                'alias' => 'part',
                 'reusable' => true,
                 'foreignKey' => [
                     'allowNulls' => true,
@@ -157,10 +178,10 @@ class RobotPartModel extends \Phalcon\Mvc\Model
 
         $this->belongsTo(
             'robotId',
-            'Pbackbone\Models\Robot',
+            '\Pbackbone\Model\RobotModel',
             'id',
             [
-                'alias' => 'Robot',
+                'alias' => 'robot',
                 'reusable' => true,
                 'foreignKey' => [
                     'allowNulls' => true,

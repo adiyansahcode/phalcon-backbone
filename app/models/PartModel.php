@@ -2,6 +2,8 @@
 
 namespace Pbackbone\Model;
 
+use Phalcon\Mvc\Model\Relation;
+
 /**
  * PartModel
  * @package Pbackbone\Models
@@ -233,12 +235,24 @@ class PartModel extends \Phalcon\Mvc\Model
         // * Sets if a model must use dynamic update instead of the all-field update
         $this->useDynamicUpdate(true);
 
+        $this->hasManyToMany(
+            'id',
+            '\Pbackbone\Model\RobotPartModel',
+            'partId',
+            'robotId',
+            '\Pbackbone\Model\RobotModel',
+            'id',
+            [
+                'alias' => 'robot',
+            ]
+        );
+
         $this->hasMany(
             'id',
-            'Pbackbone\Model\RobotPartModel',
+            '\Pbackbone\Model\RobotPartModel',
             'partId',
             [
-                'alias' => 'RobotPart',
+                'alias' => 'robotPart',
                 'reusable' => true,
                 'foreignKey' => [
                     'message' => 'data still being used',
