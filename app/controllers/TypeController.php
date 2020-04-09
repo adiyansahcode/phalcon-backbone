@@ -15,6 +15,13 @@ use Pbackbone\Validation\TypeDeleteDataValidation as DeleteDataValidation;
 class TypeController extends \Phalcon\Mvc\Controller
 {
     /**
+     * Link Name Variable
+     *
+     * @var string
+     */
+    public $linkName = "/type";
+
+    /**
      * readDataAction, get all data from table
      *
      * @return void
@@ -39,7 +46,7 @@ class TypeController extends \Phalcon\Mvc\Controller
 
         // * check filter parameters
         if (isset($filter)) {
-            $paramFilter = $this->getFilter($filter);
+            $paramFilter = $this->getFilter();
             $param1 = array_merge($param1, $paramFilter);
             $param2 = array_merge($param2, $paramFilter);
         }
@@ -53,10 +60,14 @@ class TypeController extends \Phalcon\Mvc\Controller
         }
 
         // * check sorting parameters
+        $paramOrderField = "id";
+        $paramOrderType = "asc";
         if (isset($sort)) {
             if (strpos($sort, '-') !== false) {
+                $paramOrderType = "desc";
+                $paramOrderField = str_replace("-", " ", $sort);
                 $paramOrder = [
-                    "order" => str_replace("-", " ", $sort) . " desc",
+                    "order" => $paramOrderField . " " . $paramOrderType,
                 ];
                 $param1 = array_merge($param1, $paramOrder);
             } else {
@@ -69,129 +80,56 @@ class TypeController extends \Phalcon\Mvc\Controller
 
         // * create pagination
         if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                $paramLimit = [
-                    "limit" => $page['size'],
-                ];
-                $param1 = array_merge($param1, $paramLimit);
-
-                if (isset($page['number']) && $page['number'] > 0) {
-                    $paramOffset = [
-                        "offset" => ($page['number'] - 1) * $page['size'],
-                    ];
-                    $param1 = array_merge($param1, $paramOffset);
-                }
-
-                if (isset($page['after']) || isset($page['before'])) {
-                    $paramConditions = "";
-                    if (array_key_exists('conditions', $param1)) {
-                        $paramConditions = $param1["conditions"];
-                    }
-
-                    $paramBinds = [];
-                    if (array_key_exists('bind', $param1)) {
-                        $paramBinds = $param1["bind"];
-                    }
-
-                    if (isset($page['after'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        $paramConditions .= " id > :after: ";
-                        $bindAdd = [
-                            "after" => $page['after'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($page['before'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        $paramConditions .= " id < :before: ";
-                        $bindAdd = [
-                            "before" => $page['before'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($paramConditions)) {
-                        $paramPage = [
-                            "conditions" => $paramConditions,
-                            "bind" => $paramBinds,
-                        ];
-                        $param1 = array_merge($param1, $paramPage);
-                        $param2 = array_merge($param2, $paramPage);
-                    }
-                }
-            }
+            $param1 = $this->createPagination($param1);
         }
 
         // * Query
         $dataDbs = TableModel::find($param1);
         $dataTotal = count(TableModel::find($param2));
         $responseData = [];
+        $no = 0;
+        $idFirst = 1;
+        $id = 1;
         if ($dataTotal > 0) {
             foreach ($dataDbs as $dataDb) {
-                if (isset($field)) {
-                    $responseData[] = $dataDb;
-                } else {
-                    $responseData[] = [
-                        "id" => $dataDb->getId(),
-                        "createdAt" => $dataDb->getCreatedAt(),
-                        "updatedAt" => $dataDb->getUpdatedAt(),
-                        "name" => $dataDb->getName(),
-                        "description" => $dataDb->getDescription(),
-                        "isActive" => $dataDb->getIsActive(),
-                        "links" => [
-                            "self" => "/type/" . $dataDb->getId(),
-                        ],
-                    ];
+                if ($no === 0) {
+                    $idFirst = $dataDb->getId();
                 }
+                $id = $dataDb->getId();
+                $linkSelf = $this->linkName . '/' . $id;
+
+                $responseData[$no]["id"] = $id;
+                $responseData[$no]["createdAt"] = $dataDb->getCreatedAt();
+                $responseData[$no]["updatedAt"] = $dataDb->getUpdatedAt();
+                $responseData[$no]["name"] = $dataDb->getName();
+                $responseData[$no]["description"] = $dataDb->getDescription();
+                $responseData[$no]["isActive"] = $dataDb->getIsActive();
+                $responseData[$no]["links"]["self"] = $linkSelf;
+                $no++;
             }
         }
 
-        // * Response page-based strategy
-        $totalPages = 1;
-        if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                if ($dataTotal >= $page['size']) {
-                    $item = $page['size'];
-                } else {
-                    $item = $page['size'] - ($page['size'] - $dataTotal);
-                }
-                $totalPages = ceil($dataTotal / $page['size']);
-            }
-        }
-        $responsePage["totalData"] = $dataTotal;
-        $responsePage["totalPages"] = $totalPages;
-        $responsePage["links"] = [
-            "first" => null,
-            "last" => null,
-            "prev" => null,
-            "next" => null,
-        ];
-
-        // * resonse link
+        // * response link
         $responseLink["self"] = "/type";
 
         // * create response
-        if (isset($hide)) {
-            if (is_array($hide)) {
-                $response["status"] = "success";
-                if ($hide["links"] != "true") {
-                    $response["links"] = $responseLink;
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["page"] = $this->getPagination($dataTotal, $idFirst, $id);
+        $response["data"] = $responseData;
+
+        if (isset($hide) and is_array($hide)) {
+            if (array_key_exists('links', $hide)) {
+                if ((bool) $hide["links"] === true) {
+                    unset($response["links"]);
                 }
-                if ($hide["page"] != "true") {
-                    $response["page"] = $responsePage;
-                }
-                $response["data"] = $responseData;
             }
-        } else {
-            $response["status"] = "success";
-            $response["links"] = $responseLink;
-            $response["page"] = $responsePage;
-            $response["data"] = $responseData;
+
+            if (array_key_exists('page', $hide)) {
+                if ((bool) $hide["page"] === true) {
+                    unset($response["page"]);
+                }
+            }
         }
 
         // * send response
@@ -207,8 +145,14 @@ class TypeController extends \Phalcon\Mvc\Controller
      * @param array $filter
      * @return array
      */
-    public function getFilter(array $filter): array
+    public function getFilter(): array
     {
+        // * get param request
+        $requestData = $this->request->getQuery();
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
         // * get list of table model
         $tableModel = new TableModel();
         $metadata = $tableModel->getModelsMetaData();
@@ -275,6 +219,313 @@ class TypeController extends \Phalcon\Mvc\Controller
             "conditions" => $conditions,
             "bind" => $bind,
         ];
+        return $result;
+    }
+
+    public function createPagination(array $param): ?array
+    {
+        // * get param request
+        $requestData = $this->request->getQuery();
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * check sorting parameters
+        $paramOrderType = "asc";
+        $paramOrderField = "id";
+        if (isset($sort)) {
+            if (strpos($sort, '-') !== false) {
+                $paramOrderType = "desc";
+                $paramOrderField = str_replace("-", " ", $sort);
+            }
+        }
+
+        if (isset($page['size']) && $page['size'] > 0) {
+            $paramLimit = [
+                "limit" => $page['size'],
+            ];
+            $param = array_merge($param, $paramLimit);
+
+            if (isset($page['number']) && $page['number'] > 0) {
+                $paramOffset = [
+                    "offset" => ($page['number'] - 1) * $page['size'],
+                ];
+                $param = array_merge($param, $paramOffset);
+            }
+
+            if (isset($page['after']) || isset($page['before'])) {
+                $paramConditions = null;
+                if (array_key_exists('conditions', $param)) {
+                    $paramConditions = $param["conditions"];
+                }
+
+                $paramBinds = [];
+                if (array_key_exists('bind', $param)) {
+                    $paramBinds = $param["bind"];
+                }
+
+                if (isset($page['after'])) {
+                    if ($paramConditions) {
+                        $paramConditions .= " AND ";
+                    }
+                    if ($paramOrderType === "asc") {
+                        $paramConditions .= " id > :after: ";
+                    } else {
+                        $paramConditions .= " id < :after: ";
+                    }
+                    $bindAdd = [
+                        "after" => $page['after'],
+                    ];
+                    $paramBinds = array_merge($paramBinds, $bindAdd);
+                }
+
+                if (isset($page['before'])) {
+                    $dataIds = [];
+                    $beforeId[] = 0;
+                    if ($paramOrderType === "asc") {
+                        $dataIds = TableModel::find([
+                            "conditions" => "id < :before:",
+                            "bind" => [
+                                "before" => $page['before'],
+                            ],
+                            "order" => "id desc",
+                            "limit" => $page['size'],
+                        ]);
+                    } else {
+                        $dataIds = TableModel::find([
+                            "conditions" => "id > :before:",
+                            "bind" => [
+                                "before" => $page['before'],
+                            ],
+                            "order" => "id asc",
+                            "limit" => $page['size'],
+                        ]);
+                    }
+                    if (count($dataIds) > 0) {
+                        foreach ($dataIds as $dataId) {
+                            $beforeId[] = $dataId->getId();
+                        }
+                    }
+                    if ($paramConditions) {
+                        $paramConditions .= " AND ";
+                    }
+                    $paramConditions .= " id IN ({beforeId:array}) ";
+                    $bindAdd = [
+                        "beforeId" => $beforeId,
+                    ];
+                    $paramBinds = array_merge($paramBinds, $bindAdd);
+                }
+                if (isset($paramConditions)) {
+                    $paramPage = [
+                        "conditions" => $paramConditions,
+                        "bind" => $paramBinds,
+                    ];
+                    $param = array_merge($param, $paramPage);
+                }
+            }
+        }
+        $result = $param;
+        return $result;
+    }
+
+    public function getPagination(float $total, int $idFirst, int $idLast): ?array
+    {
+        $result = null;
+        $linkAdd = null;
+
+        // * get param request
+        $requestData = $this->request->getQuery();
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * create paramQuery for link
+        unset($requestData["_url"]);
+        unset($requestData["page"]);
+        $paramQuery = [];
+        if (count($requestData) > 0) {
+            $paramQuery = $requestData;
+        }
+
+        if (isset($page) && is_array($page)) {
+            if (isset($page['size']) && $page['size'] > 0) {
+                if ($total > 0) {
+                    // * page-based pagination
+                    if (isset($page['number']) && $page['number'] > 0) {
+                        $totalPages = ceil($total / $page['size']);
+                        $result["type"] = "page-based";
+                        $result["totalData"] = $total;
+                        $result["totalPages"] = $totalPages;
+
+                        $result["links"]["first"] = null;
+                        if ($page['number'] > 1) {
+                            $dataLinksFirst = [
+                                "page" => [
+                                    "number" => 1,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksFirst);
+                            $result["links"]["first"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+
+                        $result["links"]["last"] = null;
+                        if ($page['number'] < $totalPages) {
+                            $dataLinksLast = [
+                                "page" => [
+                                    "number" => $totalPages,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksLast);
+                            $result["links"]["last"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+
+                        $result["links"]["prev"] = null;
+                        if ($page['number'] > 1) {
+                            $numberPrev =
+                            $dataLinksPrev = [
+                                "page" => [
+                                    "number" => $page['number'] - 1,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksPrev);
+                            $result["links"]["prev"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+
+                        $result["links"]["next"] = null;
+                        if ($page['number'] < $totalPages) {
+                            $dataLinksNext = [
+                                "page" => [
+                                    "number" => $page['number'] + 1,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksNext);
+                            $result["links"]["next"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+                    }
+
+                    // * cursor-based pagination
+                    if (isset($page['after']) || isset($page['before'])) {
+                        $result["type"] = "cursor-based";
+                        $result["totalData"] = $total;
+
+                        // * default variable
+                        $param1 = [];
+                        $paramPrev = [];
+                        $paramNext = [];
+                        // * check filter parameters
+                        if (isset($filter)) {
+                            $paramFilter = $this->getFilter();
+                            $param1 = array_merge($param1, $paramFilter);
+                        }
+                        // * check sorting parameters
+                        $paramOrderType = "asc";
+                        $paramOrderField = "id";
+                        if (isset($sort)) {
+                            if (strpos($sort, '-') !== false) {
+                                $paramOrderType = "desc";
+                                $paramOrderField = str_replace("-", " ", $sort);
+                                $paramOrder = [
+                                    "order" => $paramOrderField . " desc",
+                                ];
+                                $param1 = array_merge($param1, $paramOrder);
+                            } else {
+                                $paramOrder = [
+                                    "order" => $sort,
+                                ];
+                                $param1 = array_merge($param1, $paramOrder);
+                            }
+                        }
+
+                        $paramConditionsPrev = null;
+                        $paramConditionsNext = null;
+                        if (array_key_exists('conditions', $param1)) {
+                            $paramConditionsPrev = $param1["conditions"];
+                            $paramConditionsNext = $param1["conditions"];
+                        }
+
+                        $paramBindsPrev = [];
+                        $paramBindsNext = [];
+                        if (array_key_exists('bind', $param1)) {
+                            $paramBindsPrev = $param1["bind"];
+                            $paramBindsNext = $param1["bind"];
+                        }
+
+                        // * for prev link
+                        if ($paramConditionsPrev) {
+                            $paramConditionsPrev .= " AND ";
+                        }
+                        if ($paramOrderType === "asc") {
+                            $paramConditionsPrev .= " id < :id: ";
+                        } else {
+                            $paramConditionsPrev .= " id > :id: ";
+                        }
+                        $bindAdd = [
+                            "id" => $idFirst,
+                        ];
+                        $paramBindsPrev = array_merge($paramBindsPrev, $bindAdd);
+
+                        if (isset($paramConditionsPrev)) {
+                            $paramPage = [
+                                "conditions" => $paramConditionsPrev,
+                                "bind" => $paramBindsPrev,
+                            ];
+                            $paramPrev = array_merge($param1, $paramPage);
+                        }
+                        $result["links"]["prev"] = null;
+                        $dataPrev = TableModel::findFirst($paramPrev);
+                        if ($dataPrev) {
+                            $dataLinksPrev = [
+                                "page" => [
+                                    "before" => $idFirst,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksPrev);
+                            $result["links"]["prev"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+
+                        // * for next link
+                        if ($paramConditionsNext) {
+                            $paramConditionsNext .= " AND ";
+                        }
+                        if ($paramOrderType === "asc") {
+                            $paramConditionsNext .= " id > :id: ";
+                        } else {
+                            $paramConditionsNext .= " id < :id: ";
+                        }
+                        $bindAdd = [
+                            "id" => $idLast,
+                        ];
+                        $paramBindsNext = array_merge($paramBindsNext, $bindAdd);
+
+                        if (isset($paramConditionsNext)) {
+                            $paramPage = [
+                                "conditions" => $paramConditionsNext,
+                                "bind" => $paramBindsNext,
+                            ];
+                            $paramNext = array_merge($param1, $paramPage);
+                        }
+                        $result["links"]["next"] = null;
+                        $dataNext = TableModel::findFirst($paramNext);
+                        if ($dataNext) {
+                            $dataLinksNext = [
+                                "page" => [
+                                    "after" => $idLast,
+                                    "size" => $page['size'],
+                                ]
+                            ];
+                            $paramQuery = array_merge($paramQuery, $dataLinksNext);
+                            $result["links"]["next"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
+                        }
+                    }
+                }
+            }
+        }
+
         return $result;
     }
 
