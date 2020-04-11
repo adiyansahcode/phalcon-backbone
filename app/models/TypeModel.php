@@ -39,14 +39,14 @@ class TypeModel extends \Phalcon\Mvc\Model
     /**
      *
      * @var string
-     * @Column(column="name", type="string", length=50, nullable=true)
+     * @Column(column="name", type="string", length=50, nullable=true, allow_empty_string=true)
      */
     protected $name;
 
     /**
      *
      * @var string
-     * @Column(column="description", type="string", nullable=true)
+     * @Column(column="description", type="string", nullable=true, allow_empty_string=true)
      */
     protected $description;
 
