@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pbackbone\Validation;
 
+use Pbackbone\Model\RobotModel as TableModel;
+
 class RobotReadDataValidation extends \Pbackbone\Validation\BaseValidation
 {
     public function initialize()
@@ -74,6 +76,37 @@ class RobotReadDataValidation extends \Pbackbone\Validation\BaseValidation
 
                         if (array_key_exists('after', $data->page)) {
                             if (!is_numeric($data->page['after']) || $data->page['after'] <= 0) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            ])
+        );
+
+        $this->add(
+            "field",
+            new \Phalcon\Validation\Validator\Callback([
+                "message" => ":field is invalid",
+                "callback" => function ($data) {
+                    if (isset($data->field)) {
+                        if (empty($data->field)) {
+                            return false;
+                        }
+
+                        // * get list of table model
+                        $tableModel = new TableModel();
+                        $metadata = $tableModel->getModelsMetaData();
+                        $attributes = $metadata->getColumnMap($tableModel);
+                        foreach ($attributes as $attributesData) {
+                            $fields[] = $attributesData;
+                        }
+
+                        $fieldArray = explode(",", $data->field);
+                        foreach ($fieldArray as $fieldData) {
+                            if (!in_array($fieldData, $fields)) {
                                 return false;
                             }
                         }

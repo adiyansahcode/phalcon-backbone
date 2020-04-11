@@ -14,14 +14,97 @@ use Pbackbone\Validation\RobotUpdateDataByPutValidation as UpdateDataByPutValida
 use Pbackbone\Validation\RobotUpdateDataByPatchValidation as UpdateDataByPatchValidation;
 use Pbackbone\Validation\RobotDeleteDataValidation as DeleteDataValidation;
 
-class RobotController extends \Phalcon\Mvc\Controller
+class RobotController extends \Pbackbone\Controller\BaseController
 {
     /**
-     * Link Name Variable
+     * data name variable
+     *
+     * @var string
+     */
+    public $dataName = "robot";
+
+    /**
+     * link name variable
      *
      * @var string
      */
     public $linkName = "/robot";
+
+    /**
+     * options Action function
+     *
+     * @return void
+     */
+    public function optionsAction(): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    /**
+     * options By Id Action function
+     *
+     * @return void
+     */
+    public function optionsByIdAction(int $id): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    public function optionsTypeRelatedAction(int $id): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    public function optionsTypeRelatedByIdAction(int $id, int $typeId): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    public function optionsPartRelatedAction(int $id): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    public function optionsPartRelatedByIdAction(int $id, int $partId): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
 
     /**
      * readDataAction, get all data from table
@@ -48,17 +131,9 @@ class RobotController extends \Phalcon\Mvc\Controller
 
         // * check filter parameters
         if (isset($filter)) {
-            $paramFilter = $this->getFilter($filter);
+            $paramFilter = $this->getFilter(TableModel::class);
             $param1 = array_merge($param1, $paramFilter);
             $param2 = array_merge($param2, $paramFilter);
-        }
-
-        // * check field parameters
-        if (isset($field)) {
-            $paramField = [
-                "columns" => $field,
-            ];
-            $param1 = array_merge($param1, $paramField);
         }
 
         // * check sorting parameters
@@ -82,70 +157,7 @@ class RobotController extends \Phalcon\Mvc\Controller
 
         // * create pagination
         if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                $paramLimit = [
-                    "limit" => $page['size'],
-                ];
-                $param1 = array_merge($param1, $paramLimit);
-
-                if (isset($page['number']) && $page['number'] > 0) {
-                    $paramOffset = [
-                        "offset" => ($page['number'] - 1) * $page['size'],
-                    ];
-                    $param1 = array_merge($param1, $paramOffset);
-                }
-
-                if (isset($page['after']) || isset($page['before'])) {
-                    $paramConditions = null;
-                    if (array_key_exists('conditions', $param1)) {
-                        $paramConditions = $param1["conditions"];
-                    }
-
-                    $paramBinds = [];
-                    if (array_key_exists('bind', $param1)) {
-                        $paramBinds = $param1["bind"];
-                    }
-
-                    if (isset($page['after'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        if ($paramOrderType === "asc") {
-                            $paramConditions .= $paramOrderField . " > :after: ";
-                        } else {
-                            $paramConditions .= $paramOrderField . " < :after: ";
-                        }
-                        $bindAdd = [
-                            "after" => $page['after'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($page['before'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        if ($paramOrderType === "asc") {
-                            $paramConditions .= $paramOrderField . " < :before: ";
-                        } else {
-                            $paramConditions .= $paramOrderField . " > :before: ";
-                        }
-                        $bindAdd = [
-                            "before" => $page['before'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($paramConditions)) {
-                        $paramPage = [
-                            "conditions" => $paramConditions,
-                            "bind" => $paramBinds,
-                        ];
-                        $param1 = array_merge($param1, $paramPage);
-                        $param2 = array_merge($param2, $paramPage);
-                    }
-                }
-            }
+            $param1 = $this->createPagination(TableModel::class, $param1);
         }
 
         // * Query
@@ -162,54 +174,61 @@ class RobotController extends \Phalcon\Mvc\Controller
                 }
                 $id = $dataDb->getId();
                 $linkSelf = $this->linkName . '/' . $id;
-
-                $responseData[$no]["id"] = $id;
-                $responseData[$no]["createdAt"] = $dataDb->getCreatedAt();
-                $responseData[$no]["updatedAt"] = $dataDb->getUpdatedAt();
-                $responseData[$no]["name"] = $dataDb->getName();
-                $responseData[$no]["description"] = $dataDb->getDescription();
-                $responseData[$no]["year"] = $dataDb->getYear();
-                $responseData[$no]["isActive"] = $dataDb->getIsActive();
                 $responseData[$no]["links"]["self"] = $linkSelf;
 
-                // * relationships with type | one to many
-                $responseData[$no]["relationships"]["type"] = null;
-                $responseData[$no]["links"]["type"] = null;
-                if ($dataDb->getType()) {
-                    $typeId = $dataDb->getType()->getId();
-                    $linkType = $linkSelf . "/type";
-                    $responseData[$no]["links"]["type"] = $linkType;
-                    $responseData[$no]["relationships"]["type"]["id"] = $typeId;
-                    $responseData[$no]["relationships"]["type"]["links"]["self"] = $linkType . '/' . $typeId;
-                }
+                if (isset($field)) {
+                    $fieldArray = explode(",", $field);
+                    foreach ($fieldArray as $fieldData) {
+                        $aku = "get" . ucfirst($fieldData);
+                        $responseData[$no][$fieldData] = $dataDb->$aku();
+                    }
+                } else {
+                    $responseData[$no]["id"] = $id;
+                    $responseData[$no]["createdAt"] = $dataDb->getCreatedAt();
+                    $responseData[$no]["updatedAt"] = $dataDb->getUpdatedAt();
+                    $responseData[$no]["name"] = $dataDb->getName();
+                    $responseData[$no]["description"] = $dataDb->getDescription();
+                    $responseData[$no]["year"] = $dataDb->getYear();
+                    $responseData[$no]["isActive"] = $dataDb->getIsActive();
 
-                // * relationships with part | many to many
-                $responseData[$no]["relationships"]["part"] = [];
-                $responseData[$no]["links"]["part"] = null;
-                if (count($dataDb->getPart()) > 0) {
-                    $linkPart = $linkSelf . "/part";
-                    $responseData[$no]["links"]["part"] = $linkPart;
-                    $no2 = 0;
-                    foreach ($dataDb->getPart() as $partData) {
-                        $partId = $partData->getId();
-                        $responseData[$no]["relationships"]["part"][$no2]["id"] = $partId;
-                        $responseData[$no]["relationships"]["part"][$no2]["links"]["self"] = $linkPart . '/' . $partId;
-                        $no2++;
+                    // * relationships with type | one to many
+                    $responseData[$no]["type"] = null;
+                    $responseData[$no]["links"]["type"] = null;
+                    if ($dataDb->getType()) {
+                        $typeId = $dataDb->getType()->getId();
+                        $linkType = $linkSelf . "/type";
+                        $responseData[$no]["links"]["type"] = $linkType;
+                        $responseData[$no]["type"]["id"] = $typeId;
+                        $responseData[$no]["type"]["links"]["self"] = $linkType . '/' . $typeId;
+                    }
+
+                    // * relationships with part | many to many
+                    $responseData[$no]["part"] = [];
+                    $responseData[$no]["links"]["part"] = null;
+                    if (count($dataDb->getPart()) > 0) {
+                        $linkPart = $linkSelf . "/part";
+                        $responseData[$no]["links"]["part"] = $linkPart;
+                        $no2 = 0;
+                        foreach ($dataDb->getPart() as $partData) {
+                            $partId = $partData->getId();
+                            $responseData[$no]["part"][$no2]["id"] = $partId;
+                            $responseData[$no]["part"][$no2]["links"]["self"] = $linkPart . '/' . $partId;
+                            $no2++;
+                        }
                     }
                 }
-
                 $no++;
             }
         }
 
         // * response link
-        $responseLink["self"] = "/type";
+        $responseLink["self"] = $this->linkName;
 
         // * create response
         $response["status"] = "success";
         $response["links"] = $responseLink;
-        $response["page"] = $this->getPagination($dataTotal, $idFirst, $id);
-        $response["data"] = $responseData;
+        $response["page"] = $this->getPagination(TableModel::class, $dataTotal, $idFirst, $id);
+        $response["data"][$this->dataName] = $responseData;
 
         if (isset($hide) and is_array($hide)) {
             if (array_key_exists('links', $hide)) {
@@ -227,287 +246,12 @@ class RobotController extends \Phalcon\Mvc\Controller
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
         $this->response->setContent(json_encode($response));
         $this->response->send();
-    }
-
-    /**
-     * getfilter function
-     *
-     * @param array $filter
-     * @return array
-     */
-    public function getFilter(array $filter): array
-    {
-        // * get list of table model
-        $tableModel = new TableModel();
-        $metadata = $tableModel->getModelsMetaData();
-        $attributes = $metadata->getColumnMap($tableModel);
-        foreach ($attributes as $attributesData) {
-            $fields[] = $attributesData;
-        }
-
-        // * default variable
-        $conditions = null;
-        $bind = [];
-
-        foreach ($filter as $filterKey => $filterValue) {
-            if (in_array($filterKey, $fields)) {
-                if (is_array($filterValue)) {
-                    foreach ($filterValue as $filterKey2 => $filterValue2) {
-                        if ($conditions) {
-                            $conditions .= " AND ";
-                        }
-
-                        if ($filterKey2 === "like") {
-                            $conditions .= " ( " . $filterKey . " LIKE :$filterKey: ) ";
-                            $bindAdd = [
-                                $filterKey => '%' . $filterValue2 . '%',
-                            ];
-                            $bind = array_merge($bind, $bindAdd);
-                        } else {
-                            if ($filterKey2 === "equal") {
-                                $operator = "=";
-                            } elseif ($filterKey2 === "notequal") {
-                                $operator = "!=";
-                            } elseif ($filterKey2 === "greater") {
-                                $operator = ">";
-                            } elseif ($filterKey2 === "greaterNequal") {
-                                $operator = ">=";
-                            } elseif ($filterKey2 === "less") {
-                                $operator = "<";
-                            } elseif ($filterKey2 === "lessNequal") {
-                                $operator = "<=";
-                            }
-
-                            $conditions .= $filterKey . $operator . " :$filterKey: ";
-                            $bindAdd = [
-                                $filterKey => $filterValue2,
-                            ];
-                            $bind = array_merge($bind, $bindAdd);
-                        }
-                    }
-                }
-            }
-
-            if ($filterKey === "query" && !is_array($filterValue)) {
-                if ($conditions) {
-                    $conditions .= " AND ";
-                }
-                $conditions .= " ( name LIKE :filter: OR description LIKE :filter: ) ";
-                $bindAdd = [
-                    "filter" => '%' . $filterValue . '%',
-                ];
-                $bind = array_merge($bind, $bindAdd);
-            }
-        }
-        $result = [
-            "conditions" => $conditions,
-            "bind" => $bind,
-        ];
-        return $result;
-    }
-
-    public function getPagination(float $total, int $idFirst, int $idLast): ?array
-    {
-        $result = null;
-        $linkAdd = null;
-
-        // * get param request
-        $requestData = $this->request->getQuery();
-        foreach ($requestData as $paramKey => $paramValue) {
-            ${$paramKey} = $paramValue;
-        }
-
-        // * create paramQuery for link
-        unset($requestData["_url"]);
-        unset($requestData["page"]);
-        $paramQuery = [];
-        if (count($requestData) > 0) {
-            $paramQuery = $requestData;
-        }
-
-        if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                if ($total > 0) {
-                    // * page-based pagination
-                    if (isset($page['number']) && $page['number'] > 0) {
-                        $totalPages = ceil($total / $page['size']);
-                        $result["type"] = "page-based";
-                        $result["totalData"] = $total;
-                        $result["totalPages"] = $totalPages;
-
-                        $result["links"]["first"] = null;
-                        if ($page['number'] > 1) {
-                            $dataLinksFirst = [
-                                "page" => [
-                                    "number" => 1,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksFirst);
-                            $result["links"]["first"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-
-                        $result["links"]["last"] = null;
-                        if ($page['number'] < $totalPages) {
-                            $dataLinksLast = [
-                                "page" => [
-                                    "number" => $totalPages,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksLast);
-                            $result["links"]["last"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-
-                        $result["links"]["prev"] = null;
-                        if ($page['number'] > 1) {
-                            $numberPrev =
-                            $dataLinksPrev = [
-                                "page" => [
-                                    "number" => $page['number'] - 1,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksPrev);
-                            $result["links"]["prev"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-
-                        $result["links"]["next"] = null;
-                        if ($page['number'] < $totalPages) {
-                            $dataLinksNext = [
-                                "page" => [
-                                    "number" => $page['number'] + 1,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksNext);
-                            $result["links"]["next"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-                    }
-
-                    // * cursor-based pagination
-                    if (isset($page['after']) || isset($page['before'])) {
-                        $result["type"] = "cursor-based";
-                        $result["totalData"] = $total;
-
-                        // * default variable
-                        $param1 = [];
-                        $paramPrev = [];
-                        $paramNext = [];
-                        // * check filter parameters
-                        if (isset($filter)) {
-                            $paramFilter = $this->getFilter($filter);
-                            $param1 = array_merge($param1, $paramFilter);
-                        }
-                        // * check sorting parameters
-                        $paramOrderType = "asc";
-                        $paramOrderField = "id";
-                        if (isset($sort)) {
-                            if (strpos($sort, '-') !== false) {
-                                $paramOrderType = "desc";
-                                $paramOrderField = str_replace("-", " ", $sort);
-                                $paramOrder = [
-                                    "order" => str_replace("-", " ", $sort) . " desc",
-                                ];
-                                $param1 = array_merge($param1, $paramOrder);
-                            } else {
-                                $paramOrder = [
-                                    "order" => $sort,
-                                ];
-                                $param1 = array_merge($param1, $paramOrder);
-                            }
-                        }
-
-                        $paramConditionsPrev = null;
-                        $paramConditionsNext = null;
-                        if (array_key_exists('conditions', $param1)) {
-                            $paramConditionsPrev = $param1["conditions"];
-                            $paramConditionsNext = $param1["conditions"];
-                        }
-
-                        $paramBindsPrev = [];
-                        $paramBindsNext = [];
-                        if (array_key_exists('bind', $param1)) {
-                            $paramBindsPrev = $param1["bind"];
-                            $paramBindsNext = $param1["bind"];
-                        }
-
-                        // * for prev link
-                        if ($paramConditionsPrev) {
-                            $paramConditionsPrev .= " AND ";
-                        }
-                        if ($paramOrderType === "asc") {
-                            $paramConditionsPrev .= $paramOrderField . " < :id: ";
-                        } else {
-                            $paramConditionsPrev .= $paramOrderField . " > :id: ";
-                        }
-                        $bindAdd = [
-                            "id" => $idFirst,
-                        ];
-                        $paramBindsPrev = array_merge($paramBindsPrev, $bindAdd);
-
-                        if (isset($paramConditionsPrev)) {
-                            $paramPage = [
-                                "conditions" => $paramConditionsPrev,
-                                "bind" => $paramBindsPrev,
-                            ];
-                            $paramPrev = array_merge($param1, $paramPage);
-                        }
-                        $result["links"]["prev"] = null;
-                        $dataPrev = TableModel::findFirst($paramPrev);
-                        if ($dataPrev) {
-                            $dataLinksPrev = [
-                                "page" => [
-                                    "before" => $idFirst,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksPrev);
-                            $result["links"]["prev"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-
-                        // * for next link
-                        if ($paramConditionsNext) {
-                            $paramConditionsNext .= " AND ";
-                        }
-                        if ($paramOrderType === "asc") {
-                            $paramConditionsNext .= $paramOrderField . " > :id: ";
-                        } else {
-                            $paramConditionsNext .= $paramOrderField . " < :id: ";
-                        }
-                        $bindAdd = [
-                            "id" => $idLast,
-                        ];
-                        $paramBindsNext = array_merge($paramBindsNext, $bindAdd);
-
-                        if (isset($paramConditionsNext)) {
-                            $paramPage = [
-                                "conditions" => $paramConditionsNext,
-                                "bind" => $paramBindsNext,
-                            ];
-                            $paramNext = array_merge($param1, $paramPage);
-                        }
-                        $result["links"]["next"] = null;
-                        $dataNext = TableModel::findFirst($paramNext);
-                        if ($dataNext) {
-                            $dataLinksNext = [
-                                "page" => [
-                                    "after" => $idLast,
-                                    "size" => $page['size'],
-                                ]
-                            ];
-                            $paramQuery = array_merge($paramQuery, $dataLinksNext);
-                            $result["links"]["next"] = $this->linkName . "?" . http_build_query($paramQuery, '', '&');
-                        }
-                    }
-                }
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -544,30 +288,340 @@ class RobotController extends \Phalcon\Mvc\Controller
             throw new \Exception("data not found", 400);
         }
 
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id;
+        $responseLink["self"] = $linkSelf;
+        $responseLink["type"] = null;
+        $responseLink["part"] = null;
+
         // * Create Data
-        $data = [
-            "id"          => $dataDb->getId(),
-            "createdAt"   => $dataDb->getCreatedAt(),
-            "updatedAt"   => $dataDb->getUpdatedAt(),
-            "name"        => $dataDb->getName(),
-            "description" => $dataDb->getDescription(),
-            "isActive"    => $dataDb->getIsActive(),
-            "link" => [
-                "self" => "/type/" . $dataDb->getId(),
-            ]
-        ];
+        $responseData["id"] = $id;
+        $responseData["createdAt"] = $dataDb->getCreatedAt();
+        $responseData["updatedAt"] = $dataDb->getUpdatedAt();
+        $responseData["name"] = $dataDb->getName();
+        $responseData["description"] = $dataDb->getDescription();
+        $responseData["year"] = $dataDb->getYear();
+        $responseData["isActive"] = $dataDb->getIsActive();
+
+        // * relationships with type | one to many
+        $responseData["type"] = null;
+        if ($dataDb->getType()) {
+            $typeId = $dataDb->getType()->getId();
+            $linkType = $linkSelf . "/type";
+            $responseLink["type"] = $linkType;
+            $responseData["type"]["id"] = $typeId;
+            $responseData["type"]["links"]["self"] = $linkType . '/' . $typeId;
+        }
+
+        // * relationships with part | many to many
+        $responseData["part"] = [];
+        if (count($dataDb->getPart()) > 0) {
+            $linkPart = $linkSelf . "/part";
+            $responseLink["part"] = $linkPart;
+            $no2 = 0;
+            foreach ($dataDb->getPart() as $partData) {
+                $partId = $partData->getId();
+                $responseData["part"][$no2]["id"] = $partId;
+                $responseData["part"][$no2]["links"]["self"] = $linkPart . '/' . $partId;
+                $no2++;
+            }
+        }
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"][$this->dataName] = $responseData;
 
         // * send response
-        $responseStatus = "success";
-        $responseData = $data;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setContent(json_encode(
-            [
-                "status" => $responseStatus,
-                "data " => $responseData,
-            ]
-        ));
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
+        $this->response->send();
+    }
+
+    /**
+     * readTypeRelatedAction function
+     *
+     * @param integer $id
+     * @return void
+     */
+    public function readTypeRelatedAction(int $id): void
+    {
+        // * get a request
+        $addRequestData = [
+            "id" => $id,
+        ];
+        $requestData = (object) $addRequestData;
+
+        // * do validation
+        $validation = new ReadDataByIdValidation();
+        $validation->validate($requestData);
+
+        // * get param request
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * query, check table by id
+        $dataDb = TableModel::findFirst([
+            "conditions" => "id = :id:",
+            "bind" => [
+                "id" => $id,
+            ],
+        ]);
+        if (!$dataDb) {
+            throw new \Exception("data not found", 400);
+        }
+
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id . '/type';
+        $responseLink["self"] = $linkSelf;
+
+        // * relationships with type | one to many
+        $responseData["type"] = null;
+        if ($dataDb->getType()) {
+            $typeId = $dataDb->getType()->getId();
+            $responseData["type"]["id"] = $typeId;
+            $responseData["type"]["name"] = $dataDb->getType()->getName();
+            $responseData["type"]["createdAt"] = $dataDb->getType()->getCreatedAt();
+            $responseData["type"]["updatedAt"] = $dataDb->getType()->getUpdatedAt();
+            $responseData["type"]["description"] = $dataDb->getType()->getDescription();
+            $responseData["type"]["isActive"] = $dataDb->getType()->getIsActive();
+            $responseData["type"]["links"]["self"] = $linkSelf . '/' . $typeId;
+        }
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"] = $responseData;
+
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
+        $this->response->send();
+    }
+
+    /**
+     * readTypeRelatedByIdAction function
+     *
+     * @param integer $id
+     * @param integer $typeId
+     * @return void
+     */
+    public function readTypeRelatedByIdAction(int $id, int $typeId): void
+    {
+        // * get a request
+        $addRequestData = [
+            "id" => $id,
+        ];
+        $requestData = (object) $addRequestData;
+
+        // * do validation
+        $validation = new ReadDataByIdValidation();
+        $validation->validate($requestData);
+
+        // * get param request
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * query, check table by id
+        $dataDb = TableModel::findFirst([
+            "conditions" => "id = :id:",
+            "bind" => [
+                "id" => $id,
+            ],
+        ]);
+        if (!$dataDb) {
+            throw new \Exception("data not found", 400);
+        }
+
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id . '/type/' . $typeId;
+        $responseLink["self"] = $linkSelf;
+
+        // * relationships with type | one to many
+        $responseData["type"] = null;
+        $typeData = $dataDb->getType([
+            "conditions" => "id = :typeId:",
+            "bind" => [
+                "typeId" => $typeId,
+            ],
+        ]);
+        if ($typeData) {
+            $typeId = $typeData->getId();
+            $responseData["type"]["id"] = $typeId;
+            $responseData["type"]["name"] = $typeData->getName();
+            $responseData["type"]["createdAt"] = $typeData->getCreatedAt();
+            $responseData["type"]["updatedAt"] = $typeData->getUpdatedAt();
+            $responseData["type"]["description"] = $typeData->getDescription();
+            $responseData["type"]["isActive"] = $typeData->getIsActive();
+        }
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"] = $responseData;
+
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
+        $this->response->send();
+    }
+
+    /**
+     * read Part Related Action function
+     *
+     * @param integer $id
+     * @return void
+     */
+    public function readPartRelatedAction(int $id): void
+    {
+        // * get a request
+        $addRequestData = [
+            "id" => $id,
+        ];
+        $requestData = (object) $addRequestData;
+
+        // * do validation
+        $validation = new ReadDataByIdValidation();
+        $validation->validate($requestData);
+
+        // * get param request
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * query, check table by id
+        $dataDb = TableModel::findFirst([
+            "conditions" => "id = :id:",
+            "bind" => [
+                "id" => $id,
+            ],
+        ]);
+        if (!$dataDb) {
+            throw new \Exception("data not found", 400);
+        }
+
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id . '/part';
+        $responseLink["self"] = $linkSelf;
+
+        // * relationships with part | many to many
+        $responseData["part"] = [];
+        if (count($dataDb->getPart()) > 0) {
+            $no2 = 0;
+            foreach ($dataDb->getPart() as $partData) {
+                $partId = $partData->getId();
+                $responseData["part"][$no2]["id"] = $partId;
+                $responseData["part"][$no2]["name"] = $partData->getName();
+                $responseData["part"][$no2]["createdAt"] = $partData->getCreatedAt();
+                $responseData["part"][$no2]["updatedAt"] = $partData->getUpdatedAt();
+                $responseData["part"][$no2]["description"] = $partData->getDescription();
+                $responseData["part"][$no2]["isActive"] = $partData->getIsActive();
+                $responseData["part"][$no2]["links"]["self"] = $linkSelf . '/' . $partId;
+                $no2++;
+            }
+        }
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"] = $responseData;
+
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
+        $this->response->send();
+    }
+
+    /**
+     * read Part Related By Id Action function
+     *
+     * @param integer $id
+     * @param integer $partId
+     * @return void
+     */
+    public function readPartRelatedByIdAction(int $id, int $partId): void
+    {
+        // * get a request
+        $addRequestData = [
+            "id" => $id,
+        ];
+        $requestData = (object) $addRequestData;
+
+        // * do validation
+        $validation = new ReadDataByIdValidation();
+        $validation->validate($requestData);
+
+        // * get param request
+        foreach ($requestData as $paramKey => $paramValue) {
+            ${$paramKey} = $paramValue;
+        }
+
+        // * query, check table by id
+        $dataDb = TableModel::findFirst([
+            "conditions" => "id = :id:",
+            "bind" => [
+                "id" => $id,
+            ],
+        ]);
+        if (!$dataDb) {
+            throw new \Exception("data not found", 400);
+        }
+
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id . '/part/' . $partId;
+        $responseLink["self"] = $linkSelf;
+
+        // * relationships with part | many to many
+        $responseData["part"] = null;
+        $partData = $dataDb->getPart([
+            "conditions" => " [\Pbackbone\Model\PartModel].id = :partId:",
+            "bind" => [
+                "partId" => $partId,
+            ],
+        ]);
+        if (count($partData) > 0) {
+            $no2 = 0;
+            foreach ($partData as $partData) {
+                $partId = $partData->getId();
+                $responseData["part"]["id"] = $partId;
+                $responseData["part"]["name"] = $partData->getName();
+                $responseData["part"]["createdAt"] = $partData->getCreatedAt();
+                $responseData["part"]["updatedAt"] = $partData->getUpdatedAt();
+                $responseData["part"]["description"] = $partData->getDescription();
+                $responseData["part"]["isActive"] = $partData->getIsActive();
+            }
+        }
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"] = $responseData;
+
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
         $this->response->send();
     }
 

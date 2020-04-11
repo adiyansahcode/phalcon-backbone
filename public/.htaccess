@@ -15,9 +15,11 @@ AddDefaultCharset UTF-8
 </IfModule>
 
 <IfModule mod_headers.c>
+    Header set Content-Type "application/json; charset=UTF-8"
     Header set Connection keep-alive
     Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Headers "Origin, Authorization, Accept, X-Requested-With, Content-Type"
+    Header set Access-Control-Allow-Credentials "true"
+    Header set Access-Control-Allow-Headers "Accept, Authorization, Origin, Content-Disposition, Content-Range, Content-Type, X-Requested-With"
     Header set Access-Control-Allow-Methods "HEAD,OPTIONS,GET,POST,PATCH,PUT,DELETE"
 </IfModule>
 

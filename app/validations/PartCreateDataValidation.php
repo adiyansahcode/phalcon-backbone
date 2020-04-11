@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pbackbone\Validation;
 
-use Pbackbone\Model\TypeModel as TableModel;
+use Pbackbone\Model\PartModel as TableModel;
 
 class PartCreateDataValidation extends \Pbackbone\Validation\BaseValidation
 {

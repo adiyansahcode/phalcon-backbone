@@ -29,6 +29,38 @@ class TypeController extends \Pbackbone\Controller\BaseController
     public $linkName = "/type";
 
     /**
+     * options Action function
+     *
+     * @return void
+     */
+    public function optionsAction(): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    /**
+     * options By Id Action function
+     *
+     * @return void
+     */
+    public function optionsByIdAction(int $id): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    /**
      * readDataAction, get all data from table
      *
      * @return void
@@ -117,7 +149,7 @@ class TypeController extends \Pbackbone\Controller\BaseController
         }
 
         // * response link
-        $responseLink["self"] = "/type";
+        $responseLink["self"] = $this->linkName;
 
         // * create response
         $response["status"] = "success";
@@ -141,7 +173,10 @@ class TypeController extends \Pbackbone\Controller\BaseController
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
         $this->response->setContent(json_encode($response));
         $this->response->send();
     }
@@ -180,30 +215,30 @@ class TypeController extends \Pbackbone\Controller\BaseController
             throw new \Exception("data not found", 400);
         }
 
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id;
+        $responseLink["self"] = $linkSelf;
+
         // * Create Data
-        $data = [
-            "id"          => $dataDb->getId(),
-            "createdAt"   => $dataDb->getCreatedAt(),
-            "updatedAt"   => $dataDb->getUpdatedAt(),
-            "name"        => $dataDb->getName(),
-            "description" => $dataDb->getDescription(),
-            "isActive"    => $dataDb->getIsActive(),
-            "link" => [
-                "self" => "/type/" . $dataDb->getId(),
-            ]
-        ];
+        $responseData["id"] = $id;
+        $responseData["createdAt"] = $dataDb->getCreatedAt();
+        $responseData["updatedAt"] = $dataDb->getUpdatedAt();
+        $responseData["name"] = $dataDb->getName();
+        $responseData["description"] = $dataDb->getDescription();
+        $responseData["isActive"] = $dataDb->getIsActive();
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"][$this->dataName] = $responseData;
 
         // * send response
-        $responseStatus = "success";
-        $responseData[$this->dataName] = $data;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setContent(json_encode(
-            [
-                "status" => $responseStatus,
-                "data " => $responseData,
-            ]
-        ));
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
         $this->response->send();
     }
 
@@ -253,14 +288,12 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(201);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setHeader("Location", $this->config->application->baseUri . "/type/" . $id);
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -323,13 +356,12 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -397,7 +429,6 @@ class TypeController extends \Pbackbone\Controller\BaseController
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -450,7 +481,6 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -485,7 +515,6 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,

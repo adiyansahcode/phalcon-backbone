@@ -47,22 +47,50 @@ try {
             "data " => null,
         ];
         $app->response->setStatusCode(200);
-        $app->response->setContentType('application/json', 'UTF-8');
         $app->response->setContent(json_encode($responseData));
         $app->response->send();
+    });
+
+    /**
+     * default URL
+     */
+    $app->get('/404', function () use ($app) {
+        $responseStatus = "fail";
+        $responseErrors[] = [
+            "code" => 404,
+            "title" => "UrlnotFound",
+            "detail" => "url not found",
+        ];
+
+        $app->response->setStatusCode(404);
+        $app->response->setContent(json_encode(
+            [
+                "status" => $responseStatus,
+                "errors " => $responseErrors,
+            ]
+        ));
+        $app->response->send();
+        return false;
     });
 
     /**
      * Not found handler
      */
     $app->notFound(function () use ($app) {
-        $responseData = [
-            "status" => "fail",
-            "data " => null,
+        $responseStatus = "fail";
+        $responseErrors[] = [
+            "code" => 404,
+            "title" => "UrlnotFound",
+            "detail" => "url not found",
         ];
+
         $app->response->setStatusCode(404);
-        $app->response->setContentType('application/json', 'UTF-8');
-        $app->response->setContent(json_encode($responseData));
+        $app->response->setContent(json_encode(
+            [
+                "status" => $responseStatus,
+                "errors " => $responseErrors,
+            ]
+        ));
         $app->response->send();
     });
 
@@ -93,7 +121,6 @@ try {
     // * send response
     $response = new \Phalcon\Http\Response();
     $response->setStatusCode(500);
-    $response->setContentType('application/json', 'UTF-8');
     $response->setContent(json_encode(
         [
             "status" => $responseStatus,
@@ -112,7 +139,6 @@ try {
     // * send response
     $response = new \Phalcon\Http\Response();
     $response->setStatusCode(500);
-    $response->setContentType('application/json', 'UTF-8');
     $response->setContent(json_encode(
         [
             "status" => $responseStatus,
@@ -131,7 +157,6 @@ try {
     // * send response
     $response = new \Phalcon\Http\Response();
     $response->setStatusCode(500);
-    $response->setContentType('application/json', 'UTF-8');
     $response->setContent(json_encode(
         [
             "status" => $responseStatus,

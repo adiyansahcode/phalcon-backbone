@@ -192,28 +192,6 @@ class RobotPartModel extends \Phalcon\Mvc\Model
     }
 
     /**
-     * Allows to query a set of records that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return RobotPartModel[]|RobotPartModel|\Phalcon\Mvc\Model\ResultSetInterface
-     */
-    public static function find($parameters = null): \Phalcon\Mvc\Model\ResultsetInterface
-    {
-        return parent::find($parameters);
-    }
-
-    /**
-     * Allows to query the first record that match the specified conditions
-     *
-     * @param mixed $parameters
-     * @return RobotPartModel|\Phalcon\Mvc\Model\ResultInterface
-     */
-    public static function findFirst($parameters = null)
-    {
-        return parent::findFirst($parameters);
-    }
-
-    /**
      * Independent Column Mapping.
      * Keys are the real names in the table and the values their names in the application
      *

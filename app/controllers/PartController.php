@@ -12,8 +12,54 @@ use Pbackbone\Validation\PartUpdateDataByPutValidation as UpdateDataByPutValidat
 use Pbackbone\Validation\PartUpdateDataByPatchValidation as UpdateDataByPatchValidation;
 use Pbackbone\Validation\PartDeleteDataValidation as DeleteDataValidation;
 
-class PartController extends \Phalcon\Mvc\Controller
+class PartController extends \Pbackbone\Controller\BaseController
 {
+    /**
+     * data name variable
+     *
+     * @var string
+     */
+    public $dataName = "part";
+
+    /**
+     * link name variable
+     *
+     * @var string
+     */
+    public $linkName = "/part";
+
+    /**
+     * options Action function
+     *
+     * @return void
+     */
+    public function optionsAction(): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
+    /**
+     * options By Id Action function
+     *
+     * @return void
+     */
+    public function optionsByIdAction(int $id): void
+    {
+        // * send response
+        $this->response->setStatusCode(200);
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->send();
+    }
+
     /**
      * readDataAction, get all data from table
      *
@@ -39,24 +85,20 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * check filter parameters
         if (isset($filter)) {
-            $paramFilter = $this->getFilter($filter);
+            $paramFilter = $this->getFilter(TableModel::class);
             $param1 = array_merge($param1, $paramFilter);
             $param2 = array_merge($param2, $paramFilter);
         }
 
-        // * check field parameters
-        if (isset($field)) {
-            $paramField = [
-                "columns" => $field,
-            ];
-            $param1 = array_merge($param1, $paramField);
-        }
-
         // * check sorting parameters
+        $paramOrderField = "id";
+        $paramOrderType = "asc";
         if (isset($sort)) {
             if (strpos($sort, '-') !== false) {
+                $paramOrderType = "desc";
+                $paramOrderField = str_replace("-", " ", $sort);
                 $paramOrder = [
-                    "order" => str_replace("-", " ", $sort) . " desc",
+                    "order" => $paramOrderField . " " . $paramOrderType,
                 ];
                 $param1 = array_merge($param1, $paramOrder);
             } else {
@@ -69,213 +111,74 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * create pagination
         if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                $paramLimit = [
-                    "limit" => $page['size'],
-                ];
-                $param1 = array_merge($param1, $paramLimit);
-
-                if (isset($page['number']) && $page['number'] > 0) {
-                    $paramOffset = [
-                        "offset" => ($page['number'] - 1) * $page['size'],
-                    ];
-                    $param1 = array_merge($param1, $paramOffset);
-                }
-
-                if (isset($page['after']) || isset($page['before'])) {
-                    $paramConditions = "";
-                    if (array_key_exists('conditions', $param1)) {
-                        $paramConditions = $param1["conditions"];
-                    }
-
-                    $paramBinds = [];
-                    if (array_key_exists('bind', $param1)) {
-                        $paramBinds = $param1["bind"];
-                    }
-
-                    if (isset($page['after'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        $paramConditions .= " id > :after: ";
-                        $bindAdd = [
-                            "after" => $page['after'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($page['before'])) {
-                        if ($paramConditions) {
-                            $paramConditions .= " AND ";
-                        }
-                        $paramConditions .= " id < :before: ";
-                        $bindAdd = [
-                            "before" => $page['before'],
-                        ];
-                        $paramBinds = array_merge($paramBinds, $bindAdd);
-                    }
-
-                    if (isset($paramConditions)) {
-                        $paramPage = [
-                            "conditions" => $paramConditions,
-                            "bind" => $paramBinds,
-                        ];
-                        $param1 = array_merge($param1, $paramPage);
-                        $param2 = array_merge($param2, $paramPage);
-                    }
-                }
-            }
+            $param1 = $this->createPagination(TableModel::class, $param1);
         }
 
         // * Query
         $dataDbs = TableModel::find($param1);
         $dataTotal = count(TableModel::find($param2));
         $responseData = [];
+        $no = 0;
+        $idFirst = 0;
+        $id = 0;
         if ($dataTotal > 0) {
             foreach ($dataDbs as $dataDb) {
+                if ($no === 0) {
+                    $idFirst = $dataDb->getId();
+                }
+                $id = $dataDb->getId();
+                $linkSelf = $this->linkName . '/' . $id;
+                $responseData[$no]["links"]["self"] = $linkSelf;
+
                 if (isset($field)) {
-                    $responseData[] = $dataDb;
+                    $fieldArray = explode(",", $field);
+                    foreach ($fieldArray as $fieldData) {
+                        $aku = "get" . ucfirst($fieldData);
+                        $responseData[$no][$fieldData] = $dataDb->$aku();
+                    }
                 } else {
-                    $responseData[] = [
-                        "id" => $dataDb->getId(),
-                        "createdAt" => $dataDb->getCreatedAt(),
-                        "updatedAt" => $dataDb->getUpdatedAt(),
-                        "name" => $dataDb->getName(),
-                        "description" => $dataDb->getDescription(),
-                        "isActive" => $dataDb->getIsActive(),
-                        "links" => [
-                            "self" => "/type/" . $dataDb->getId(),
-                        ],
-                    ];
+                    $responseData[$no]["id"] = $id;
+                    $responseData[$no]["createdAt"] = $dataDb->getCreatedAt();
+                    $responseData[$no]["updatedAt"] = $dataDb->getUpdatedAt();
+                    $responseData[$no]["name"] = $dataDb->getName();
+                    $responseData[$no]["description"] = $dataDb->getDescription();
+                    $responseData[$no]["isActive"] = $dataDb->getIsActive();
                 }
+                $no++;
             }
         }
 
-        // * Response page-based strategy
-        $totalPages = 1;
-        if (isset($page) && is_array($page)) {
-            if (isset($page['size']) && $page['size'] > 0) {
-                if ($dataTotal >= $page['size']) {
-                    $item = $page['size'];
-                } else {
-                    $item = $page['size'] - ($page['size'] - $dataTotal);
-                }
-                $totalPages = ceil($dataTotal / $page['size']);
-            }
-        }
-        $responsePage["totalData"] = $dataTotal;
-        $responsePage["totalPages"] = $totalPages;
-        $responsePage["links"] = [
-            "first" => null,
-            "last" => null,
-            "prev" => null,
-            "next" => null,
-        ];
-
-        // * resonse link
-        $responseLink["self"] = "/type";
+        // * response link
+        $responseLink["self"] = $this->linkName;
 
         // * create response
-        if (isset($hide)) {
-            if (is_array($hide)) {
-                $response["status"] = "success";
-                if ($hide["links"] != "true") {
-                    $response["links"] = $responseLink;
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["page"] = $this->getPagination(TableModel::class, $dataTotal, $idFirst, $id);
+        $response["data"][$this->dataName] = $responseData;
+
+        if (isset($hide) and is_array($hide)) {
+            if (array_key_exists('links', $hide)) {
+                if ((bool) $hide["links"] === true) {
+                    unset($response["links"]);
                 }
-                if ($hide["page"] != "true") {
-                    $response["page"] = $responsePage;
-                }
-                $response["data"] = $responseData;
             }
-        } else {
-            $response["status"] = "success";
-            $response["links"] = $responseLink;
-            $response["page"] = $responsePage;
-            $response["data"] = $responseData;
+
+            if (array_key_exists('page', $hide)) {
+                if ((bool) $hide["page"] === true) {
+                    unset($response["page"]);
+                }
+            }
         }
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
+        $this->response->setHeader(
+            'Allow',
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+        );
         $this->response->setContent(json_encode($response));
         $this->response->send();
-    }
-
-    /**
-     * getfilter function
-     *
-     * @param array $filter
-     * @return array
-     */
-    public function getFilter(array $filter): array
-    {
-        // * get list of table model
-        $tableModel = new TableModel();
-        $metadata = $tableModel->getModelsMetaData();
-        $attributes = $metadata->getColumnMap($tableModel);
-        foreach ($attributes as $attributesData) {
-            $fields[] = $attributesData;
-        }
-
-        // * default variable
-        $conditions = null;
-        $bind = [];
-
-        foreach ($filter as $filterKey => $filterValue) {
-            if (in_array($filterKey, $fields)) {
-                if (is_array($filterValue)) {
-                    foreach ($filterValue as $filterKey2 => $filterValue2) {
-                        if ($conditions) {
-                            $conditions .= " AND ";
-                        }
-
-                        if ($filterKey2 === "like") {
-                            $conditions .= " ( " . $filterKey . " LIKE :$filterKey: ) ";
-                            $bindAdd = [
-                                $filterKey => '%' . $filterValue2 . '%',
-                            ];
-                            $bind = array_merge($bind, $bindAdd);
-                        } else {
-                            if ($filterKey2 === "equal") {
-                                $operator = "=";
-                            } elseif ($filterKey2 === "notequal") {
-                                $operator = "!=";
-                            } elseif ($filterKey2 === "greater") {
-                                $operator = ">";
-                            } elseif ($filterKey2 === "greaterNequal") {
-                                $operator = ">=";
-                            } elseif ($filterKey2 === "less") {
-                                $operator = "<";
-                            } elseif ($filterKey2 === "lessNequal") {
-                                $operator = "<=";
-                            }
-
-                            $conditions .= $filterKey . $operator . " :$filterKey: ";
-                            $bindAdd = [
-                                $filterKey => $filterValue2,
-                            ];
-                            $bind = array_merge($bind, $bindAdd);
-                        }
-                    }
-                }
-            }
-
-            if ($filterKey === "query" && !is_array($filterValue)) {
-                if ($conditions) {
-                    $conditions .= " AND ";
-                }
-                $conditions .= " ( name LIKE :filter: OR description LIKE :filter: ) ";
-                $bindAdd = [
-                    "filter" => '%' . $filterValue . '%',
-                ];
-                $bind = array_merge($bind, $bindAdd);
-            }
-        }
-        $result = [
-            "conditions" => $conditions,
-            "bind" => $bind,
-        ];
-        return $result;
     }
 
     /**
@@ -298,11 +201,7 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * get param request
         foreach ($requestData as $paramKey => $paramValue) {
-            if ($paramValue || is_numeric($paramValue)) {
-                ${$paramKey} = $this->filters->sanitize($paramValue, ['trim']);
-            } else {
-                ${$paramKey} = null;
-            }
+            ${$paramKey} = $paramValue;
         }
 
         // * query, check table by id
@@ -316,30 +215,30 @@ class PartController extends \Phalcon\Mvc\Controller
             throw new \Exception("data not found", 400);
         }
 
+        // * response link
+        $linkSelf = $this->linkName . '/' . $id;
+        $responseLink["self"] = $linkSelf;
+
         // * Create Data
-        $data = [
-            "id"          => $dataDb->getId(),
-            "createdAt"   => $dataDb->getCreatedAt(),
-            "updatedAt"   => $dataDb->getUpdatedAt(),
-            "name"        => $dataDb->getName(),
-            "description" => $dataDb->getDescription(),
-            "isActive"    => $dataDb->getIsActive(),
-            "link" => [
-                "self" => $this->config->application->baseUri . "/type/" . $dataDb->getId(),
-            ]
-        ];
+        $responseData["id"] = $id;
+        $responseData["createdAt"] = $dataDb->getCreatedAt();
+        $responseData["updatedAt"] = $dataDb->getUpdatedAt();
+        $responseData["name"] = $dataDb->getName();
+        $responseData["description"] = $dataDb->getDescription();
+        $responseData["isActive"] = $dataDb->getIsActive();
+
+        // * create response
+        $response["status"] = "success";
+        $response["links"] = $responseLink;
+        $response["data"][$this->dataName] = $responseData;
 
         // * send response
-        $responseStatus = "success";
-        $responseData[$this->dataName] = $data;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setContent(json_encode(
-            [
-                "status" => $responseStatus,
-                "data " => $responseData,
-            ]
-        ));
+        $this->response->setHeader(
+            'Allow',
+            'GET,POST,DELETE,OPTIONS,HEAD'
+        );
+        $this->response->setContent(json_encode($response));
         $this->response->send();
     }
 
@@ -359,11 +258,7 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * get param request
         foreach ($requestData as $paramKey => $paramValue) {
-            if ($paramValue || is_numeric($paramValue)) {
-                ${$paramKey} = $this->filters->sanitize($paramValue, ['trim']);
-            } else {
-                ${$paramKey} = null;
-            }
+            ${$paramKey} = $paramValue;
         }
 
         // * begin transaction
@@ -393,14 +288,12 @@ class PartController extends \Phalcon\Mvc\Controller
         $responseData = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(201);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setHeader("Location", $this->config->application->baseUri . "/type/" . $id);
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -425,11 +318,7 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * get param request
         foreach ($requestData as $paramKey => $paramValue) {
-            if ($paramValue || is_numeric($paramValue)) {
-                ${$paramKey} = $this->filters->sanitize($paramValue, ['trim']);
-            } else {
-                ${$paramKey} = null;
-            }
+            ${$paramKey} = $paramValue;
         }
 
         // * begin transaction
@@ -467,13 +356,12 @@ class PartController extends \Phalcon\Mvc\Controller
         $responseData = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -498,11 +386,7 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * get param request
         foreach ($requestData as $paramKey => $paramValue) {
-            if ($paramValue || is_numeric($paramValue)) {
-                ${$paramKey} = $this->filters->sanitize($paramValue, ['trim']);
-            } else {
-                ${$paramKey} = null;
-            }
+            ${$paramKey} = $paramValue;
         }
 
         // * begin transaction
@@ -545,7 +429,6 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -569,11 +452,7 @@ class PartController extends \Phalcon\Mvc\Controller
 
         // * get param request
         foreach ($requestData as $paramKey => $paramValue) {
-            if ($paramValue || is_numeric($paramValue)) {
-                ${$paramKey} = $this->filters->sanitize($paramValue, ['trim']);
-            } else {
-                ${$paramKey} = null;
-            }
+            ${$paramKey} = $paramValue;
         }
 
         // * begin transaction
@@ -602,7 +481,6 @@ class PartController extends \Phalcon\Mvc\Controller
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -637,7 +515,6 @@ class PartController extends \Phalcon\Mvc\Controller
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,

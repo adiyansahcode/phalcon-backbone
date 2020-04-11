@@ -50,7 +50,6 @@ class BaseValidation extends \Phalcon\Validation
             // * send response
             $response = new \Phalcon\Http\Response();
             $response->setStatusCode(400);
-            $response->setContentType('application/json', 'UTF-8');
             $response->setContent(json_encode(
                 [
                     "status" => $responseStatus,
