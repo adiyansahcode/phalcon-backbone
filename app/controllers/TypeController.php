@@ -423,7 +423,7 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 

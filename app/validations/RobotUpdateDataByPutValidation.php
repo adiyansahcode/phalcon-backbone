@@ -9,20 +9,29 @@ use Pbackbone\Model\RobotModel as TableModel;
 use Pbackbone\Model\TypeModel;
 use Pbackbone\Model\PartModel;
 
-class RobotCreateDataValidation extends \Pbackbone\Validation\BaseValidation
+class RobotUpdateDataByPutValidation extends \Pbackbone\Validation\BaseValidation
 {
     public function initialize()
     {
         $this->add(
             [
+                "id",
                 "name",
                 "description",
-                "year",
                 "isActive"
             ],
-            new \Phalcon\Validation\Validator\PresenceOf(
-                ["message" => ":field is required"]
-            )
+            new \Phalcon\Validation\Validator\PresenceOf([
+                "message" => ":field is required"
+            ])
+        );
+
+        $this->add(
+            [
+                "id",
+            ],
+            new \Phalcon\Validation\Validator\Numericality([
+                "message" => ":field must be numeric",
+            ])
         );
 
         $this->add(
@@ -57,19 +66,43 @@ class RobotCreateDataValidation extends \Pbackbone\Validation\BaseValidation
         );
 
         $this->add(
-            [
-                "year",
-            ],
-            new \Phalcon\Validation\Validator\Numericality([
-                "message" => ":field must numeric character",
+            "id",
+            new \Phalcon\Validation\Validator\Callback([
+                "message" => "id not found",
+                "callback" => function ($data) {
+                    $result = true;
+                    $id = $data->id;
+                    $validateData = TableModel::findFirst($id);
+                    if (!$validateData) {
+                        $result = false;
+                    }
+
+                    return $result;
+                },
             ])
         );
 
         $this->add(
             "name",
-            new \Phalcon\Validation\Validator\Uniqueness([
-                "model"   => new TableModel(),
+            new \Phalcon\Validation\Validator\Callback([
                 "message" => ":field already exist",
+                "callback" => function ($data) {
+                    $result = true;
+                    $id = $data->id;
+                    $name = $data->name;
+                    $validateData = TableModel::findFirst([
+                        "conditions" => "id != :id: AND name = :name:",
+                        "bind" => [
+                            "id" => $id,
+                            "name" => $name,
+                        ],
+                    ]);
+                    if ($validateData) {
+                        $result = false;
+                    }
+
+                    return $result;
+                },
             ])
         );
 

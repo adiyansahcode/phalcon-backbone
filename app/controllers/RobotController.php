@@ -649,10 +649,10 @@ class RobotController extends \Pbackbone\Controller\BaseController
         $transaction = $manager->get()->throwRollbackException(true);
 
         // * check type | relationships one to many
-        $type = TypeModel::findFirst($relationships->type->id);
+        $type = TypeModel::findFirst($type->id);
 
         // * check part | relationships many to many
-        foreach ($relationships->part as $partData) {
+        foreach ($part as $partData) {
             $part[] = PartModel::findFirst($partData->id);
         }
 
@@ -679,17 +679,15 @@ class RobotController extends \Pbackbone\Controller\BaseController
 
         // * create response
         $responseStatus = "success";
-        $responseData = [
+        $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(201);
-        $this->response->setContentType('application/json', 'UTF-8');
-        $this->response->setHeader("Location", $this->config->application->baseUri . "/type/" . $id);
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -721,6 +719,14 @@ class RobotController extends \Pbackbone\Controller\BaseController
         $manager = $this->transactions;
         $transaction = $manager->get()->throwRollbackException(true);
 
+        // * check type | relationships one to many
+        $type = TypeModel::findFirst($type->id);
+
+        // * check part | relationships many to many
+        foreach ($part as $partData) {
+            $part[] = PartModel::findFirst($partData->id);
+        }
+
         // * query, check table by id and update
         $updateData = TableModel::findFirst([
             "conditions" => "id = :id:",
@@ -732,13 +738,17 @@ class RobotController extends \Pbackbone\Controller\BaseController
             throw new \Exception("data not found", 400);
         }
         $updateData->setTransaction($transaction);
+        $updateData->getRobotPart()->delete();
         $updateData->assign(
             [
                 "name" => $name,
                 "description" => $description,
+                "year" => $year,
                 "isActive" => $isActive,
             ]
         );
+        $updateData->type = $type; // * save relationships type | one to many
+        $updateData->part = $part; // * save relationships part | many to many
         if ($updateData->save() === false) {
             throw new \Exception("failed to update", 400);
         }
@@ -749,16 +759,15 @@ class RobotController extends \Pbackbone\Controller\BaseController
 
         // * create response
         $responseStatus = "success";
-        $responseData = [
+        $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -804,9 +813,20 @@ class RobotController extends \Pbackbone\Controller\BaseController
         $updateData->assign(
             (array) $jsonRequest,
             [
-                "name", "description", "isActive"
+                "name", "description", "year", "isActive"
             ]
         );
+        if (isset($type)) {
+            $typeData = TypeModel::findFirst($type->id);
+            $updateData->type = $typeData; // * save relationships type | one to many
+        }
+        if (isset($part)) {
+            $updateData->getRobotPart()->delete();
+            foreach ($part as $partData) {
+                $partArray[] = PartModel::findFirst($partData->id);
+            }
+            $updateData->part = $partArray; // * save relationships part | many to many
+        }
         if ($updateData->save() === false) {
             throw new \Exception("failed to update", 400);
         }
@@ -817,16 +837,15 @@ class RobotController extends \Pbackbone\Controller\BaseController
 
         // * create response
         $responseStatus = "success";
-        $responseData = [
+        $responseData[$this->dataName] = [
             "id" => $id,
             "links" => [
-                "self" => "/type/" . $id
+                "self" => $this->linkName . "/" . $id
             ],
         ];
 
         // * send response
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -879,7 +898,6 @@ class RobotController extends \Pbackbone\Controller\BaseController
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
@@ -914,7 +932,6 @@ class RobotController extends \Pbackbone\Controller\BaseController
         $responseStatus = "success";
         $responseData = null;
         $this->response->setStatusCode(200);
-        $this->response->setContentType('application/json', 'UTF-8');
         $this->response->setContent(json_encode(
             [
                 "status" => $responseStatus,
