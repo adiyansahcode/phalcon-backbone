@@ -21,11 +21,10 @@ simple backend project created with phalcon v4
 
 ## Task List
 
-* [x] API type
-* [ ] API robot
-* [ ] API part
-* [ ] API robot_part
+* [x] API Type
+* [x] API Part
+* [x] API Robot
 
 ## About Me
 
-visit my website [adiyansahcode.id](http://adiyansahcode.id/)
+[adiyansahcode.id](http://adiyansahcode.id/)
