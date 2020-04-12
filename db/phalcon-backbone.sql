@@ -29,9 +29,10 @@ CREATE TABLE `part` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `is_active` enum('yes','no') DEFAULT 'yes',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,13 +47,14 @@ CREATE TABLE `robot` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
   `year` int(10) DEFAULT 0,
+  `is_active` enum('yes','no') DEFAULT 'yes',
   `type_id` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_type_id_01_idx` (`type_id`),
   CONSTRAINT `fk_type_id_01` FOREIGN KEY (`type_id`) REFERENCES `type` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,8 +73,8 @@ CREATE TABLE `robot_part` (
   KEY `robots_id` (`robot_id`),
   KEY `parts_id` (`part_id`),
   CONSTRAINT `fk_parts_id_01` FOREIGN KEY (`part_id`) REFERENCES `part` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_robots_id_01` FOREIGN KEY (`robot_id`) REFERENCES `robot` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  CONSTRAINT `fk_robots_id_01` FOREIGN KEY (`robot_id`) REFERENCES `robot` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -87,10 +89,10 @@ CREATE TABLE `type` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   `name` varchar(50) COLLATE utf8_bin DEFAULT NULL,
-  `description` varchar(200) COLLATE utf8_bin DEFAULT NULL,
+  `description` text COLLATE utf8_bin DEFAULT NULL,
   `is_active` enum('yes','no') COLLATE utf8_bin DEFAULT 'yes',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,4 +112,4 @@ CREATE TABLE `type` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-04-01 17:36:11
+-- Dump completed on 2020-04-12 18:10:15
