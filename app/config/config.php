@@ -12,7 +12,7 @@ return new \Phalcon\Config([
         'port'     => '3310',
         'username' => 'root',
         'password' => 'Code00',
-        'dbname'   => 'phalcon-backbone',
+        'dbname'   => 'adi-code-backend',
         'charset'  => 'utf8',
     ],
 
