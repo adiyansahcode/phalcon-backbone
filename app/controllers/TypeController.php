@@ -61,7 +61,8 @@ class TypeController extends \Pbackbone\Controller\BaseController
     }
 
     /**
-     * readDataAction, get all data from table
+     * readDataAction
+     * get all data from table
      *
      * @return void
      */
@@ -175,14 +176,15 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $this->response->setStatusCode(200);
         $this->response->setHeader(
             'Allow',
-            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
+            'GET,POST,DELETE,OPTIONS,HEAD'
         );
         $this->response->setContent(json_encode($response));
         $this->response->send();
     }
 
     /**
-     * readDataByIdAction, get data by id
+     * readDataByIdAction
+     * get data by id from table
      *
      * @param integer $id
      * @return void
@@ -236,14 +238,15 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $this->response->setStatusCode(200);
         $this->response->setHeader(
             'Allow',
-            'GET,POST,DELETE,OPTIONS,HEAD'
+            'GET,PUT,PATCH,DELETE,OPTIONS,HEAD'
         );
         $this->response->setContent(json_encode($response));
         $this->response->send();
     }
 
     /**
-     * createDataAction, create new data
+     * createDataAction
+     * create new data
      *
      * @return void
      */
@@ -303,6 +306,14 @@ class TypeController extends \Pbackbone\Controller\BaseController
         $this->response->send();
     }
 
+    /**
+     * updateDataByPutAction
+     * update data with id
+     * method put
+     *
+     * @param integer $id
+     * @return void
+     */
     public function updateDataByPutAction(int $id): void
     {
         // * get a request

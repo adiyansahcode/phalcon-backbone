@@ -138,7 +138,7 @@ class RobotPartModel extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSchema("phalcon-backbone");
+        // $this->setSchema("phalcon-backbone");
         $this->setSource("robot_part");
 
         $this->addBehavior(

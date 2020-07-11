@@ -201,7 +201,7 @@ class TypeModel extends \Phalcon\Mvc\Model
      */
     public function initialize()
     {
-        $this->setSchema("phalcon-backbone");
+        // $this->setSchema("phalcon-backbone");
         $this->setSource("type");
 
         $this->addBehavior(
