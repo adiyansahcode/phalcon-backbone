@@ -1,0 +1,20 @@
+{
+    "name": "adiyansahcode/phalcon-backbone",
+    "type": "project",
+    "description": "phalcon-backbone | Restful API with Phalcon V.4",
+    "keywords": [
+        "php",
+        "php-framework",
+        "phalcon",
+        "phalcon-backend",
+        "php-backend"
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

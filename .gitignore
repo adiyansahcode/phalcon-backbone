@@ -1,4 +1,5 @@
-phalcon-backbone.code-workspace
+*.code-workspace
+*.env
 composer.lock
 backup
 note.txt

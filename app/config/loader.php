@@ -6,6 +6,10 @@
 
 $loader = new \Phalcon\Loader();
 
+$loader->registerFiles([
+    BASE_PATH . "/vendor/autoload.php"
+]);
+
 // Register Folder
 $loader->registerDirs(
     [

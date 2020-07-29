@@ -1,19 +1,21 @@
 <?php
 
-// phpcs:disable
-defined('BASE_PATH') || define('BASE_PATH', getenv('BASE_PATH') ?: realpath(dirname(__FILE__) . '/../..'));
-defined('APP_PATH') || define('APP_PATH', BASE_PATH . '/app');
-// phpcs:enable
+// Composer autoload
+include BASE_PATH . "/vendor/autoload.php";
+
+// Environment variables
+$dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
+$dotenv->load();
 
 return new \Phalcon\Config([
     'database' => [
-        'adapter'  => 'Mysql',
-        'host'     => 'localhost',
-        'port'     => '3310',
-        'username' => 'root',
-        'password' => 'Code00',
-        'dbname'   => 'adi-code-backend',
-        'charset'  => 'utf8',
+        'adapter'  => $_ENV['DB_ADAPTER'],
+        'host'     => $_ENV['DB_HOST'],
+        'port'     => $_ENV['DB_PORT'],
+        'dbname'   => $_ENV['DB_DATABASE'],
+        'username' => $_ENV['DB_USERNAME'],
+        'password' => $_ENV['DB_PASSWORD'],
+        'charset'  => $_ENV['DB_CHARSET'],
     ],
 
     'application' => [
