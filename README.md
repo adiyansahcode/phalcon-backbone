@@ -6,8 +6,8 @@ simple backend project created with phalcon v4
 
 | no | name | version |
 | ------------- | ------------- | ------------- |
-| 1 | http server | * |
-| 2 | php | 7.3 |
+| 1 | apache / nginx | * |
+| 2 | php | 7.3 / 7.4 |
 | 3 | phalcon | 4 |
 | 4 | mariaDB | 10 |
 
