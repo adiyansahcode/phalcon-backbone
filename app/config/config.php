@@ -19,11 +19,12 @@ return new \Phalcon\Config([
     ],
 
     'application' => [
-        "baseUri"        => "http://localhost/phalcon-backbone",
-        "publicUrl"      => "http://localhost/phalcon-backbone/public/",
-        "publicPath"     => $_SERVER['DOCUMENT_ROOT'] . "/phalcon-backbone/public/",
+        "baseUri"        => $_ENV['APP_URL'],
+        "publicUrl"      => $_ENV['APP_URL'] . "/public",
+        "publicPath"     => $_SERVER['DOCUMENT_ROOT'] . "/phalcon-backbone/public",
         "routersDir"     => APP_PATH . "/routers/",
         "controllersDir" => APP_PATH . "/controllers/",
+        "middlewaresDir" => APP_PATH . "/middlewares/",
         "migrationsDir"  => APP_PATH . "/migrations/",
         "modelsDir"      => APP_PATH . "/models/",
         "validationsDir" => APP_PATH . "/validations/",

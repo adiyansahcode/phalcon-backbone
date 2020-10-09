@@ -15,6 +15,7 @@ $loader->registerDirs(
     [
         $config->application->routersDir,
         $config->application->controllersDir,
+        $config->application->middlewaresDir,
         $config->application->migrationsDir,
         $config->application->modelsDir,
         $config->application->validationsDir,
@@ -26,6 +27,7 @@ $loader->registerNamespaces(
     [
         'Pbackbone\Controller' => $config->application->controllersDir,
         'Pbackbone\Model'      => $config->application->modelsDir,
+        'Pbackbone\Middlewares' => $config->application->middlewaresDir,
         'Pbackbone\Validation' => $config->application->validationsDir,
     ]
 );

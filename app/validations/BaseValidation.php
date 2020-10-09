@@ -50,6 +50,23 @@ class BaseValidation extends \Phalcon\Validation
             // * send response
             $response = new \Phalcon\Http\Response();
             $response->setStatusCode(400);
+            $response->setHeader('Content-Type', 'application/json; charset=UTF-8');
+            $response->setHeader(
+                'Allow',
+                'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'
+            );
+            $response->setHeader(
+                'Access-Control-Allow-Headers',
+                'Origin, Authorization, Accept, X-Requested-With, Content-Type'
+            );
+            $response->setHeader(
+                'Access-Control-Allow-Methods',
+                'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'
+            );
+            $response->setHeader(
+                'Access-Control-Allow-Origin',
+                '*'
+            );
             $response->setContent(json_encode(
                 [
                     "status" => $responseStatus,
