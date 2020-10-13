@@ -15,7 +15,7 @@ simple backend project created with phalcon v4
 
 * Install phalcon v4 [Linux](https://phalcon.io/en-us/download/linux) & [Windows](https://phalcon.io/en-us/download/windows)
 * clone/download this project
-* import phalcon-backbone.sql inside db folder
+* import phalcon-backbone.sql inside datatabse folder or use [phalcon migrations](https://docs.phalcon.io/4.0/id-id/db-migrations)
 * import phalcon-backbone.postman_collection.json to [postman](https://www.postman.com/)
 * finish, just try run your postman
 
